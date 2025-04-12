@@ -1,0 +1,76 @@
+<view class="page-container">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="back-button" bindtap="handleBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <text class="nav-title">会议详情</text>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 会议信息卡片 -->
+  <view class="meeting-card">
+    <view class="meeting-title">{{meeting.title}}</view>
+    <view class="meeting-info">
+      <view class="info-item">
+        <text class="iconfont icon-time"></text>
+        <text>{{meeting.time}}</text>
+      </view>
+      <view class="info-item">
+        <text class="iconfont icon-duration"></text>
+        <text>{{meeting.duration}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 会议内容 -->
+  <view class="content-section">
+    <view class="content-header">
+      <text class="content-title">会议内容</text>
+      <view class="content-actions">
+        <view class="action-button" bindtap="handleEdit">
+          <text class="iconfont icon-edit"></text>
+          <text>编辑</text>
+        </view>
+        <view class="action-button" bindtap="handleShare">
+          <text class="iconfont icon-share"></text>
+          <text>分享</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 会议内容列表 -->
+    <view class="content-list">
+      <view class="content-item" wx:for="{{meeting.content}}" wx:key="index">
+        <view class="speaker-avatar">{{item.speaker[0]}}</view>
+        <view class="content-detail">
+          <view class="speaker-info">
+            <text class="speaker-name">{{item.speaker}}</text>
+            <text class="speaker-time">{{item.time}}</text>
+          </view>
+          <text class="speech-text">{{item.text}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="bar-item" bindtap="handlePlay">
+      <text class="iconfont icon-play"></text>
+      <text>播放</text>
+    </view>
+    <view class="bar-item" bindtap="handleSummary">
+      <text class="iconfont icon-summary"></text>
+      <text>摘要</text>
+    </view>
+    <view class="bar-item" bindtap="handleDownload">
+      <text class="iconfont icon-download"></text>
+      <text>下载</text>
+    </view>
+    <view class="bar-item" bindtap="handleDelete">
+      <text class="iconfont icon-delete"></text>
+      <text>删除</text>
+    </view>
+  </view>
+</view>

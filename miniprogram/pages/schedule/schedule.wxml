@@ -1,0 +1,76 @@
+<view class="page-container">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar">
+    <text class="nav-title">会议日程</text>
+    <view class="nav-actions">
+      <view class="action-button" bindtap="showFilter">
+        <text class="iconfont icon-filter"></text>
+      </view>
+      <view class="action-button" bindtap="addSchedule">
+        <text class="iconfont icon-add"></text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 日历组件 -->
+  <view class="calendar-section">
+    <calendar 
+      bind:dayClick="onDayClick"
+      bind:monthChange="onMonthChange"
+      spot="{{spots}}"
+      defaultTime="{{defaultTime}}"
+    />
+  </view>
+
+  <!-- 日程列表 -->
+  <view class="schedule-list">
+    <view class="date-header">
+      <text class="date-text">{{selectedDate}}</text>
+      <text class="schedule-count">{{schedules.length}}个日程</text>
+    </view>
+
+    <block wx:if="{{schedules.length > 0}}">
+      <view class="schedule-item" 
+            wx:for="{{schedules}}" 
+            wx:key="id"
+            bindtap="viewScheduleDetail"
+            data-id="{{item.id}}">
+        <view class="time-column">
+          <text class="time-text">{{item.startTime}}</text>
+          <text class="duration-text">{{item.duration}}</text>
+        </view>
+        <view class="content-column">
+          <text class="title-text">{{item.title}}</text>
+          <view class="info-row">
+            <view class="participant-info">
+              <text class="iconfont icon-user"></text>
+              <text>{{item.participants.length}}人</text>
+            </view>
+            <view class="location-info" wx:if="{{item.location}}">
+              <text class="iconfont icon-location"></text>
+              <text>{{item.location}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="status-column">
+          <text class="status-tag {{item.status === 'upcoming' ? 'upcoming' : 'completed'}}">
+            {{item.status === 'upcoming' ? '即将开始' : '已完成'}}
+          </text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:else>
+      <image src="/assets/images/empty-schedule.png" mode="aspectFit" class="empty-image"/>
+      <text class="empty-text">当前日期暂无日程</text>
+      <button class="add-button" bindtap="addSchedule">添加日程</button>
+    </view>
+  </view>
+
+  <!-- 底部录音按钮 -->
+  <view class="record-button" bindtap="navigateToRecording">
+    <text class="iconfont icon-mic record-button-icon"></text>
+    <text>开始录音</text>
+  </view>
+</view>

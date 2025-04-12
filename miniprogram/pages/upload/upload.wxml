@@ -1,0 +1,49 @@
+<view class="file-upload-page">
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="back-button" bindtap="handleBack">
+      <text class="iconfont icon-back"></text>
+    </view>
+    <text class="nav-title">添加音视频</text>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- 上传区域 -->
+  <view class="upload-container">
+    <view class="upload-area" bindtap="chooseFile">
+      <view class="upload-icon">
+        <text class="iconfont icon-video"></text>
+      </view>
+      <text class="upload-text">添加音视频</text>
+      <text class="selected-file" wx:if="{{selectedFile}}">已选择: {{selectedFile.name}}</text>
+    </view>
+
+    <!-- 文件格式说明 -->
+    <view class="format-info">
+      <view class="format-section">
+        <text class="format-title">音频支持</text>
+        <text class="format-desc">{{audioFormats}} (单个文件最大500M)</text>
+      </view>
+      <view class="format-section">
+        <text class="format-title">视频支持</text>
+        <text class="format-desc">{{videoFormats}} (单个文件最大6G)</text>
+      </view>
+    </view>
+
+    <!-- 上传进度 -->
+    <view class="upload-progress" wx:if="{{uploading}}">
+      <view class="progress-bar">
+        <view class="progress-inner" style="width: {{uploadProgress}}%"></view>
+      </view>
+      <text class="progress-text">{{uploadProgress}}%</text>
+    </view>
+
+    <!-- 上传按钮 -->
+    <button 
+      class="upload-button {{(!selectedFile || uploading) ? 'disabled' : ''}}"
+      bindtap="handleUpload"
+      disabled="{{!selectedFile || uploading}}">
+      {{uploading ? '上传中...' : '点击上传'}}
+    </button>
+  </view>
+</view>

@@ -1,0 +1,61 @@
+<view class="container">
+  <!-- 顶部状态栏 -->
+  <view class="header">
+    <view class="time-display">
+      <text class="current-time">{{currentTime}}</text>
+      <text class="total-time">---{{formattedTime}}</text>
+    </view>
+    <view class="language-selector">中文</view>
+  </view>
+
+  <!-- 录音信息 -->
+  <view class="recording-info">
+    <text class="recording-title">{{recordingTitle}}</text>
+  </view>
+
+  <!-- 转录内容区域 -->
+  <scroll-view scroll-y="true" class="transcription-area">
+    <block wx:if="{{transcripts && transcripts.length > 0}}">
+      <view 
+        wx:for="{{transcripts}}" 
+        wx:key="id" 
+        class="transcript-item {{item.isFinal ? 'final' : 'interim'}}">
+        <view class="transcript-time">{{formatTranscriptTime(item.timestamp)}}</view>
+        <view class="transcript-text">{{item.text}}</view>
+      </view>
+    </block>
+    <view wx:else class="empty-transcript">
+      <image class="empty-image" src="/assets/images/empty.png" mode="aspectFit"></image>
+      <text class="empty-text">点击下方按钮开始录音</text>
+    </view>
+  </scroll-view>
+
+  <!-- 提示信息 -->
+  <view class="recording-tip" wx:if="{{isRecording}}">
+    <text>为确保录音正常，录音期间请保持手机常亮，请勿熄屏</text>
+  </view>
+
+  <!-- 波形动画 -->
+  <view class="waveform-container" wx:if="{{isRecording}}">
+    <text class="waveform-time">{{formattedTime}}</text>
+    <view class="waveform">
+      <view 
+        wx:for="{{waveformData}}" 
+        wx:key="index" 
+        class="waveform-bar" 
+        style="height: {{item}}rpx;">
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部控制栏 -->
+  <view class="footer">
+    <view class="controls">
+      <view class="btn cancel" bindtap="onCancel">取消</view>
+      <view class="record-btn {{isRecording ? 'recording' : ''}}" bindtap="toggleRecording">
+        <view class="record-icon"></view>
+      </view>
+      <view class="btn complete" bindtap="onComplete">完成</view>
+    </view>
+  </view>
+</view>

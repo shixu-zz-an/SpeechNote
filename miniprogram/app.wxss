@@ -1,0 +1,168 @@
+/**app.wxss**/
+page {
+  --primary-color: #1890ff;
+  --success-color: #52c41a;
+  --warning-color: #faad14;
+  --error-color: #f5222d;
+  --font-size-small: 24rpx;
+  --font-size-base: 28rpx;
+  --font-size-medium: 32rpx;
+  --font-size-large: 36rpx;
+  --border-radius-small: 4rpx;
+  --border-radius-base: 8rpx;
+  --border-radius-large: 16rpx;
+  
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+    Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
+    sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.page-section {
+  background: #fff;
+  border-radius: var(--border-radius-base);
+  margin: 24rpx;
+  padding: 24rpx;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+.text-warning {
+  color: var(--warning-color);
+}
+
+.text-error {
+  color: var(--error-color);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.margin-top {
+  margin-top: 24rpx;
+}
+
+.margin-bottom {
+  margin-bottom: 24rpx;
+}
+
+.margin-left {
+  margin-left: 24rpx;
+}
+
+.margin-right {
+  margin-right: 24rpx;
+}
+
+.padding {
+  padding: 24rpx;
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 20rpx 32rpx;
+  border-radius: var(--border-radius-base);
+  font-size: var(--font-size-base);
+  text-align: center;
+  border: none;
+  outline: none;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.btn-primary:active {
+  background-color: #096dd9;
+}
+
+.btn-default {
+  background-color: #fff;
+  color: #333;
+  border: 2rpx solid #e8e8e8;
+}
+
+.btn-default:active {
+  background-color: #f5f5f5;
+}
+
+/* 加载动画 */
+.loading {
+  display: inline-block;
+  width: 32rpx;
+  height: 32rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 图标字体
+@font-face {
+  font-family: 'iconfont';
+  src: url('//at.alicdn.com/t/font_2878882_s8q0e6xdgx.woff2') format('woff2'),
+       url('//at.alicdn.com/t/font_2878882_s8q0e6xdgx.woff') format('woff'),
+       url('//at.alicdn.com/t/font_2878882_s8q0e6xdgx.ttf') format('truetype');
+} */
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 32rpx;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

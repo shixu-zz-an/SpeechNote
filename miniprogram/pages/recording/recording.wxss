@@ -1,0 +1,194 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 顶部状态栏样式 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  border-bottom: 1rpx solid #eee;
+  height: 80rpx;
+}
+
+.time-display {
+  display: flex;
+  align-items: center;
+}
+
+.current-time {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.total-time {
+  font-size: 28rpx;
+  color: #999;
+  margin-left: 4rpx;
+}
+
+.language-selector {
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 录音信息样式 */
+.recording-info {
+  padding: 20rpx 30rpx;
+}
+
+.date-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.recording-title {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+}
+
+/* 转录内容区域样式 */
+.transcription-area {
+  flex: 1;
+  padding: 20rpx 30rpx;
+  overflow-y: auto;
+}
+
+.transcript-item {
+  margin-bottom: 30rpx;
+}
+
+.transcript-item.interim {
+  opacity: 0.8;
+}
+
+.transcript-time {
+  font-size: 28rpx;
+  color: #8B8B8B;
+  margin-bottom: 8rpx;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.transcript-text {
+  font-size: 34rpx;
+  color: #333;
+  line-height: 1.5;
+  word-wrap: break-word;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.empty-transcript {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.empty-image {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 录音提示样式 */
+.recording-tip {
+  padding: 20rpx;
+  text-align: center;
+}
+
+.recording-tip text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 波形动画样式 */
+.waveform-container {
+  padding: 30rpx;
+  border-top: 1rpx solid #eee;
+}
+
+.waveform-time {
+  font-size: 32rpx;
+  color: #333;
+  text-align: center;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.waveform {
+  height: 120rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20rpx;
+}
+
+.waveform-bar {
+  width: 4rpx;
+  background: #007AFF;
+  border-radius: 2rpx;
+  transition: height 0.1s ease;
+}
+
+/* 底部控制栏样式 */
+.footer {
+  padding: 30rpx;
+  border-top: 1rpx solid #eee;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn {
+  padding: 16rpx 32rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.cancel {
+  color: #666;
+}
+
+.complete {
+  color: #007AFF;
+}
+
+.record-btn {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  background: #007AFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 8rpx rgba(0, 122, 255, 0.2);
+}
+
+.record-btn.recording {
+  background: #FF3B30;
+}
+
+.record-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background: #fff;
+  border-radius: 8rpx;
+}

@@ -1,0 +1,58 @@
+<view class="page-container">
+  <!-- 顶部搜索栏 -->
+  <view class="header">
+    <view class="page-title">会议记录</view>
+    <view class="search-bar">
+      <view class="search-input" bindtap="onSearchTap">
+        <text class="iconfont icon-search"></text>
+        <text class="search-placeholder">搜索会议记录</text>
+      </view>
+      <view class="filter-button" bindtap="showFilter">
+        <text class="iconfont icon-filter"></text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 会议列表 -->
+  <scroll-view class="meeting-list" scroll-y="true">
+    <block wx:for="{{meetingGroups}}" wx:key="date">
+      <view class="meeting-date">{{item.date}}</view>
+      <view class="meeting-item" 
+            wx:for="{{item.meetings}}" 
+            wx:key="id"
+            wx:for-item="meeting"
+            bindtap="navigateToDetail"
+            data-id="{{meeting.id}}">
+        <view class="meeting-title">
+          <view class="play-button">
+            <text class="iconfont icon-play"></text>
+          </view>
+          <text class="meeting-name">{{meeting.title}}</text>
+        </view>
+        <view class="meeting-info">
+          <view class="meeting-time">
+            <text class="iconfont icon-time info-icon"></text>
+            <text>{{meeting.time}}</text>
+          </view>
+          <view class="meeting-duration">
+            <text class="iconfont icon-duration info-icon"></text>
+            <text>{{meeting.duration}}</text>
+          </view>
+          <text>{{meeting.source}}</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{meetings.length === 0}}">
+      <image src="/assets/images/empty-records.png" mode="aspectFit" class="empty-image"/>
+      <text class="empty-text">暂无会议记录</text>
+    </view>
+  </scroll-view>
+
+  <!-- 录音按钮 -->
+  <view class="record-button" bindtap="navigateToRecording">
+    <text class="iconfont icon-mic record-button-icon"></text>
+    <text>开始录音</text>
+  </view>
+</view>

@@ -1,0 +1,244 @@
+.page-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 160rpx;
+}
+
+.page-section {
+  margin-bottom: 24rpx;
+}
+
+/* 轮播图样式 */
+.banner-swiper {
+  height: 320rpx;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 版本选择区域 */
+.version-tabs {
+  margin: 24rpx;
+  background-color: white;
+  border-radius: 24rpx;
+  padding: 24rpx;
+}
+
+.tab-header {
+  display: flex;
+  border-bottom: 2rpx solid #f0f0f0;
+  margin-bottom: 24rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+}
+
+.tab.active {
+  color: #1677ff;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 4rpx;
+  background-color: #1677ff;
+  border-radius: 2rpx;
+}
+
+.version-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 功能卡片区域 */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300rpx, 1fr));
+  gap: 20rpx;
+  padding: 20rpx;
+  margin: 16rpx 16rpx 0 16rpx;
+  box-sizing: border-box;
+}
+
+.feature-card {
+  background-color: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  min-width: 0; /* 防止内容溢出 */
+}
+
+.feature-card:active {
+  transform: translateY(-4rpx);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  color: white;
+  flex-shrink: 0; /* 防止图标被压缩 */
+}
+
+.feature-icon .iconfont {
+  font-size: 36rpx;
+}
+
+.feature-icon.blue {
+  background-color: #1677ff;
+}
+
+.feature-icon.purple {
+  background-color: #7e57c2;
+}
+
+.feature-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden; /* 确保文本不会溢出 */
+}
+
+.feature-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 4rpx;
+  color: #333;
+}
+
+.feature-desc {
+  font-size: 22rpx;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 会议列表 */
+.meeting-list {
+  background-color: white;
+  border-radius: 24rpx;
+  margin: 24rpx;
+  padding: 16rpx 0;
+}
+
+.meeting-date {
+  padding: 16rpx 32rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  border-bottom: 2rpx solid #f5f5f5;
+  margin-bottom: 16rpx;
+}
+
+.meeting-item {
+  margin: 16rpx 24rpx;
+  padding: 24rpx;
+  background-color: #f8f9fa;
+  border-radius: 24rpx;
+}
+
+.meeting-item:active {
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+.meeting-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.play-button {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background-color: #e6f4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  color: #1677ff;
+}
+
+.play-button .iconfont {
+  font-size: 32rpx;
+}
+
+.meeting-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.meeting-info {
+  display: flex;
+  align-items: center;
+  color: #999;
+  font-size: 24rpx;
+  margin-left: 88rpx;
+}
+
+.meeting-time,
+.meeting-duration {
+  display: flex;
+  align-items: center;
+  margin-right: 32rpx;
+}
+
+.info-icon {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+  color: #999;
+}
+
+/* 录音按钮 */
+.record-button {
+  position: fixed;
+  bottom: 160rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240rpx;
+  height: 88rpx;
+  background-color: #1677ff;
+  color: white;
+  border: none;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.3);
+  z-index: 90;
+}
+
+.record-button:active {
+  transform: translateX(-50%) translateY(-4rpx);
+  box-shadow: 0 12rpx 32rpx rgba(22, 119, 255, 0.4);
+}
+
+.record-button-icon {
+  margin-right: 12rpx;
+  font-size: 36rpx;
+}
