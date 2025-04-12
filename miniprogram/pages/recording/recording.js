@@ -2,7 +2,7 @@ const app = getApp();
 
 // WebSocket配置
 const WS_CONFIG = {
-  url: 'wss://ai.zjk-net.com/ws',
+  url: 'wss://localhost/ws',
   reconnectInterval: 30000,
   maxRetries: 3
 };
