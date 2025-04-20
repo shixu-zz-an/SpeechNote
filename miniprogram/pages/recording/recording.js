@@ -2,7 +2,7 @@ const app = getApp();
 
 // WebSocket配置
 const WS_CONFIG = {
-  url: 'wss://localhost/ws',
+  url: 'ws://192.168.0.107:8080/ws',
   reconnectInterval: 30000,
   maxRetries: 3
 };

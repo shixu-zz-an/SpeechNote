@@ -5,7 +5,8 @@
     "pages/schedule/schedule",
     "pages/record-detail/record-detail",
     "pages/recording/recording",
-    "pages/upload/upload"
+    "pages/upload/upload",
+    "pages/login/login"
   ],
   "window": {
     "backgroundTextStyle": "light",

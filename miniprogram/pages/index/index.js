@@ -3,52 +3,53 @@ const app = getApp();
 Page({
   data: {
     currentVersion: 'free',
-    versionDesc: '免费版功能：\n• 实时语音转写\n• 本地录音\n• 基础会议记录',
+    versionDesc: 'u514du8d39u7248u529fu80fduff1a\nu2022 u5b9eu65f6u8bedu97f3u8f6cu5199\nu2022 u672cu5730u5f55u97f3\nu2022 u57fau7840u4f1au8baeu8bb0u5f55',
     banners: [
       {
         id: 1,
         imageUrl: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=800&auto=format&fit=crop&q=60',
-        title: '智能会议助手',
+        title: 'u667au80fdu4f1au8baeu52a9u624b',
         link: '/feature/assistant'
       },
       {
         id: 2,
         imageUrl: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop&q=60',
-        title: '高效会议记录',
+        title: 'u9ad8u6548u4f1au8baeu8bb0u5f55',
         link: '/feature/record'
       },
       {
         id: 3,
         imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&q=60',
-        title: 'AI 会议总结',
+        title: 'AI u4f1au8baeu603bu7ed3',
         link: '/feature/summary'
       }
     ],
     recentMeetings: [
       {
         id: '1',
-        title: '2025-03-29 22:52 录音',
+        title: '2025-03-29 22:52 u5f55u97f3',
         time: '03-29 22:52',
         duration: '00:01',
-        source: '小程序'
+        source: 'u5c0fu7a0bu5e8f'
       },
       {
         id: '2',
-        title: '2025-03-29 22:51 录音',
+        title: '2025-03-29 22:51 u5f55u97f3',
         time: '03-29 22:51',
         duration: '00:01',
-        source: '小程序'
+        source: 'u5c0fu7a0bu5e8f'
       }
     ],
     showRecordButton: true
   },
 
   onLoad() {
+    // u52a0u8f7du6700u8fd1u4f1au8baeu8bb0u5f55
     this.loadRecentMeetings();
   },
 
   onShow() {
-    // 确保在首页时显示录音按钮
+    // u786eu4fddu5728u9996u9875u65f6u663eu793au5f55u97f3u6309u94ae
     const pages = getCurrentPages();
     const isIndexPage = pages.length === 1;
     
@@ -56,7 +57,7 @@ Page({
       showRecordButton: isIndexPage
     });
 
-    // 如果有新的录音，刷新列表
+    // u5982u679cu6709u65b0u7684u5f55u97f3uff0cu5237u65b0u5217u8868
     if (app.globalData.needRefreshMeetings) {
       this.loadRecentMeetings();
       app.globalData.needRefreshMeetings = false;
@@ -64,16 +65,16 @@ Page({
   },
 
   onHide() {
-    // 离开页面时隐藏录音按钮
+    // u79bbu5f00u9875u9762u65f6u9690u85cfu5f55u97f3u6309u94ae
     this.setData({
       showRecordButton: false
     });
   },
 
-  // 加载最近会议记录
+  // u52a0u8f7du6700u8fd1u4f1au8baeu8bb0u5f55
   async loadRecentMeetings() {
     try {
-      // 这里替换为实际的API调用
+      // u8fd9u91ccu66ffu6362u4e3au5b9eu9645u7684APIu8c03u7528
       // const res = await app.request({
       //   url: '/api/meetings/recent',
       //   method: 'GET'
@@ -83,18 +84,18 @@ Page({
       // });
     } catch (error) {
       wx.showToast({
-        title: '加载失败',
+        title: 'u52a0u8f7du5931u8d25',
         icon: 'none'
       });
     }
   },
 
-  // 切换版本
+  // u5207u6362u7248u672c
   switchVersion(e) {
     const version = e.currentTarget.dataset.version;
     const versionDesc = version === 'free' 
-      ? '免费版功能：\n• 实时语音转写\n• 本地录音\n• 基础会议记录'
-      : '专业版功能：\n• 无限时长录音\n• AI 会议纪要\n• 高级转写功能\n• 团队协作';
+      ? 'u514du8d39u7248u529fu80fduff1a\nu2022 u5b9eu65f6u8bedu97f3u8f6cu5199\nu2022 u672cu5730u5f55u97f3\nu2022 u57fau7840u4f1au8baeu8bb0u5f55'
+      : 'u4e13u4e1au7248u529fu80fduff1a\nu2022 u65e0u9650u65f6u957fu5f55u97f3\nu2022 AI u4f1au8baeu7eaau8981\nu2022 u9ad8u7ea7u8f6cu5199u529fu80fd\nu2022 u56e2u961fu534fu4f5c';
     
     this.setData({
       currentVersion: version,
@@ -102,7 +103,7 @@ Page({
     });
   },
 
-  // 页面导航
+  // u9875u9762u5bfcu822a
   navigateTo(e) {
     const path = e.currentTarget.dataset.path;
     wx.navigateTo({
@@ -115,7 +116,7 @@ Page({
     });
   },
 
-  // 跳转到会议详情
+  // u8df3u8f6cu5230u4f1au8baeu8be6u60c5
   navigateToDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
@@ -123,7 +124,7 @@ Page({
     });
   },
 
-  // 点击轮播图
+  // u70b9u51fbu8f6eu64adu56fe
   onBannerTap(e) {
     const index = e.currentTarget.dataset.index;
     const banner = this.data.banners[index];
