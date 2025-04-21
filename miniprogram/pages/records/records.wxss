@@ -57,7 +57,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 24rpx;
-  padding-bottom: 160rpx; /* 为底部录音按钮留出空间 */
+  padding-bottom: 24rpx; /* 移除为底部录音按钮留出的空间 */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -154,31 +154,7 @@
   color: #999;
 }
 
-/* 录音按钮 */
+/* 录音按钮样式保留但不使用 */
 .record-button {
-  position: fixed;
-  bottom: 48rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 240rpx;
-  height: 88rpx;
-  background-color: #1677ff;
-  color: white;
-  border-radius: 44rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30rpx;
-  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.3);
-  z-index: 90;
-}
-
-.record-button:active {
-  transform: translateX(-50%) translateY(-4rpx);
-  box-shadow: 0 12rpx 32rpx rgba(22, 119, 255, 0.4);
-}
-
-.record-button-icon {
-  margin-right: 12rpx;
-  font-size: 36rpx;
+  display: none; /* 隐藏录音按钮 */
 }

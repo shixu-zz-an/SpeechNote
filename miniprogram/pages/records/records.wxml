@@ -50,9 +50,9 @@
     </view>
   </scroll-view>
 
-  <!-- 录音按钮 -->
+  <!-- 录音按钮
   <view class="record-button" bindtap="navigateToRecording">
     <text class="iconfont icon-mic record-button-icon"></text>
     <text>开始录音</text>
-  </view>
+  </view> -->
 </view>

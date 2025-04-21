@@ -19,6 +19,7 @@ const request = (options) => {
         'Content-Type': 'application/json',
         'Authorization': app.globalData.token
       },
+     
       success: (res) => {
         if (res.statusCode === 200) {
           resolve(res.data);
@@ -31,6 +32,7 @@ const request = (options) => {
             // 重新调用请求
             request(options).then(resolve).catch(reject);
           }).catch(err => {
+            console.log(err)
             // 重新登录失败，跳转到登录页
             app.globalData.isLogin = false;
             wx.navigateTo({

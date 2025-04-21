@@ -7,12 +7,16 @@ Page({
   },
 
   onLoad() {
+    console.log('records onLoad');
     this.loadMeetings();
   },
 
   onShow() {
+    console.log('records onShow');
+    // Tab 页面切换时也需要加载数据
+    this.loadMeetings();
+    
     if (app.globalData.needRefreshMeetings) {
-      this.loadMeetings();
       app.globalData.needRefreshMeetings = false;
     }
   },
@@ -26,40 +30,77 @@ Page({
   // 加载会议记录
   async loadMeetings() {
     try {
-      // 这里替换为实际的API调用
-      // const res = await app.request({
-      //   url: '/api/meetings',
-      //   method: 'GET'
-      // });
-      
-      // 使用模拟数据
-      const meetings = [
-        {
-          id: '1',
-          title: '2025-03-29 22:52 录音',
-          time: '22:52',
-          duration: '00:01',
-          source: '小程序',
-          date: '2025-03-29'
-        },
-        {
-          id: '2',
-          title: '2025-03-29 22:51 录音',
-          time: '22:51',
-          duration: '00:01',
-          source: '小程序',
-          date: '2025-03-29'
-        }
-      ];
-
-      // 按日期分组
-      const groups = this.groupMeetingsByDate(meetings);
-      
-      this.setData({
-        meetings,
-        meetingGroups: groups
+      wx.showLoading({
+        title: '加载中...'
       });
+      
+      console.log('开始请求会议记录数据');
+      // 调用后端接口获取会议记录
+      const res = await app.request({
+        url: '/api/meetings',
+        method: 'GET'
+      });
+      
+      console.log('获取会议记录数据成功:', res);
+      
+      if (res.success && res.data) {
+        // 处理后端返回的数据
+        const meetings = res.data.map(item => {
+          // 从startTime中提取日期和时间
+          const startTime = new Date(item.startTime);
+          const endTime = new Date(item.endTime);
+          
+          // 计算会议时长（分钟）
+          const durationMs = endTime - startTime;
+          const durationMinutes = Math.floor(durationMs / (1000 * 60));
+          const hours = Math.floor(durationMinutes / 60);
+          const minutes = durationMinutes % 60;
+          const durationStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          
+          // 格式化时间为 HH:MM
+          const timeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;
+          
+          // 格式化日期为 YYYY-MM-DD
+          const dateStr = startTime.toISOString().split('T')[0];
+          
+          // 来源映射
+          const sourceMap = {
+            1: '小程序',
+            2: '上传',
+            3: '导入'
+          };
+          
+          return {
+            id: item.id,
+            title: item.title,
+            time: timeStr,
+            duration: durationStr,
+            source: sourceMap[item.source] || '未知',
+            date: dateStr,
+            recordingStatus: item.recordingStatus,
+            storagePath: item.storagePath,
+            rawData: item // 保留原始数据，以备后续使用
+          };
+        });
+
+        // 按日期分组
+        const groups = this.groupMeetingsByDate(meetings);
+        
+        console.log('处理后的会议记录数据:', meetings);
+        console.log('分组后的数据:', groups);
+        
+        this.setData({
+          meetings,
+          meetingGroups: groups
+        });
+      } else {
+        throw new Error(res.message || '获取会议记录失败');
+      }
+      
+      wx.hideLoading();
     } catch (error) {
+      console.error('加载会议记录失败:', error);
+      wx.hideLoading();
       wx.showToast({
         title: '加载失败',
         icon: 'none'
@@ -82,7 +123,8 @@ Page({
     });
 
     return Object.values(groups).sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
+      return new Date(b.date.replace(/[年月日]/g, '-').replace('周', '').trim()) - 
+             new Date(a.date.replace(/[年月日]/g, '-').replace('周', '').trim());
     });
   },
 

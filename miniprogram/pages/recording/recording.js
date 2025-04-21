@@ -73,7 +73,7 @@ Page({
     return new Promise((resolve, reject) => {
       // 创建WebSocket连接
       wx.connectSocket({
-        url: 'wss://ai.zjk-net.com/ws',
+        url: WS_CONFIG.url,
         success: () => {
           console.log('WebSocket连接创建成功');
         },
