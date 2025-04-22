@@ -2,7 +2,7 @@ const app = getApp();
 
 // WebSocket配置
 const WS_CONFIG = {
-  url: 'ws://192.168.0.107:8080/ws',
+  url: 'ws://192.168.0.100:8080/api/ws/recording',
   reconnectInterval: 30000,
   maxRetries: 3
 };
