@@ -1,76 +1,107 @@
-<view class="page-container">
-  <!-- 顶部导航栏 -->
-  <view class="nav-bar">
-    <view class="back-button" bindtap="handleBack">
+<view class="container">
+  <!-- Header with back button and action buttons -->
+  <view class="header">
+    <navigator open-type="navigateBack" delta="1" class="back-btn">
       <text class="iconfont icon-back"></text>
+    </navigator>
+    <view class="search-input">
+      <icon type="search" size="14" color="#999"></icon>
+      <input placeholder="搜索记录" confirm-type="search" bindconfirm="searchRecording"></input>
     </view>
-    <text class="nav-title">会议详情</text>
-    <view class="nav-right"></view>
-  </view>
-
-  <!-- 会议信息卡片 -->
-  <view class="meeting-card">
-    <view class="meeting-title">{{meeting.title}}</view>
-    <view class="meeting-info">
-      <view class="info-item">
-        <text class="iconfont icon-time"></text>
-        <text>{{meeting.time}}</text>
-      </view>
-      <view class="info-item">
-        <text class="iconfont icon-duration"></text>
-        <text>{{meeting.duration}}</text>
-      </view>
+    <view class="action-btn share" bindtap="shareRecording">
+      <text class="iconfont icon-share"></text>
     </view>
   </view>
 
-  <!-- 会议内容 -->
-  <view class="content-section">
-    <view class="content-header">
-      <text class="content-title">会议内容</text>
-      <view class="content-actions">
-        <view class="action-button" bindtap="handleEdit">
-          <text class="iconfont icon-edit"></text>
-          <text>编辑</text>
-        </view>
-        <view class="action-button" bindtap="handleShare">
-          <text class="iconfont icon-share"></text>
-          <text>分享</text>
-        </view>
+  <!-- Recording Info -->
+  <view class="recording-info">
+    <view class="recording-title">{{meeting.title}}</view>
+    <view class="recording-meta">
+      <text class="date">{{meeting.date}} {{meeting.time}}</text>
+      <text class="duration">{{meeting.duration}}</text>
+      <text class="source">{{meeting.source}}</text>
+    </view>
+  </view>
+
+  <!-- Tab Navigation -->
+  <view class="tab-nav">
+    <view class="tab {{activeTab === 'transcript' ? 'active' : ''}}" bindtap="switchTab" data-tab="transcript">会议纪要</view>
+    <view class="tab {{activeTab === 'content' ? 'active' : ''}}" bindtap="switchTab" data-tab="content">原文</view>
+    <view class="tab {{activeTab === 'ai' ? 'active' : ''}}" bindtap="switchTab" data-tab="ai">AI对话</view>
+  </view>
+
+  <!-- Content Area -->
+  <view class="content-area">
+    <!-- Transcript Tab -->
+    <view class="tab-content transcript-content" wx:if="{{activeTab === 'transcript'}}">
+      <view class="bullet-list" wx:if="{{meeting.summary && meeting.summary.length > 0}}">
+        <view class="bullet-item" wx:for="{{meeting.summary}}" wx:key="index">{{item}}</view>
+      </view>
+      <view class="empty-content" wx:else>
+        <text>暂无会议纪要内容</text>
       </view>
     </view>
 
-    <!-- 会议内容列表 -->
-    <view class="content-list">
-      <view class="content-item" wx:for="{{meeting.content}}" wx:key="index">
-        <view class="speaker-avatar">{{item.speaker[0]}}</view>
-        <view class="content-detail">
-          <view class="speaker-info">
-            <text class="speaker-name">{{item.speaker}}</text>
-            <text class="speaker-time">{{item.time}}</text>
+    <!-- Original Content Tab -->
+    <view class="tab-content original-content" wx:if="{{activeTab === 'content'}}">
+      <block wx:for="{{transcripts}}" wx:key="index">
+        <view class="speaker-block">
+          <view class="speaker-info" wx:if="{{item.speakerId !== undefined}}">
+            <view class="speaker-avatar">
+              <text>{{item.speakerId[0]}}</text>
+            </view>
+            <view class="speaker-time">{{item.formattedTime}}</view>
           </view>
-          <text class="speech-text">{{item.text}}</text>
+          <view class="speech-content">
+            <rich-text nodes="{{item.text}}"></rich-text>
+          </view>
+        </view>
+      </block>
+      <view class="empty-content" wx:if="{{transcripts.length === 0}}">
+        <text>暂无转写内容</text>
+      </view>
+    </view>
+
+    <!-- AI Chat Tab -->
+    <view class="tab-content ai-content" wx:if="{{activeTab === 'ai'}}">
+      <view class="ai-chat-container">
+        <block wx:for="{{aiChat}}" wx:key="timestamp">
+          <view class="chat-item {{item.isAI ? 'ai-message' : 'user-message'}}">
+            <view class="chat-avatar">
+              <image src="{{item.isAI ? '/assets/images/ai_avatar.png' : '/assets/images/user_avatar.png'}}" mode="aspectFit"></image>
+            </view>
+            <view class="chat-bubble">
+              <view class="chat-text">{{item.text}}</view>
+              <view class="chat-time">{{item.formattedTime}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+      <view class="ai-input-area">
+        <input class="ai-input" placeholder="输入问题，AI帮你解答" confirm-type="send" bindconfirm="sendToAI" value="{{aiInput}}"></input>
+        <view class="ai-send-btn" bindtap="sendToAI">
+          <text class="iconfont icon-send"></text>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
-  <view class="bottom-bar">
-    <view class="bar-item" bindtap="handlePlay">
-      <text class="iconfont icon-play"></text>
-      <text>播放</text>
-    </view>
-    <view class="bar-item" bindtap="handleSummary">
-      <text class="iconfont icon-summary"></text>
-      <text>摘要</text>
-    </view>
-    <view class="bar-item" bindtap="handleDownload">
-      <text class="iconfont icon-download"></text>
-      <text>下载</text>
-    </view>
-    <view class="bar-item" bindtap="handleDelete">
-      <text class="iconfont icon-delete"></text>
-      <text>删除</text>
+  <!-- Audio Player -->
+  <view class="audio-player" wx:if="{{meeting.audioUrl}}">
+    <view class="player-controls">
+      <view class="player-btn" bindtap="togglePlayback">
+        <text class="iconfont {{isPlaying ? 'icon-pause' : 'icon-play'}}"></text>
+      </view>
+      <view class="player-progress">
+        <slider class="progress-slider" min="0" max="{{audioDuration}}" value="{{currentPosition}}" activeColor="#3E7BFA" backgroundColor="#E1E4E8" block-size="12" block-color="#3E7BFA" bindchange="seekAudio"></slider>
+        <view class="time-info">
+          <text>{{formatTime(currentPosition)}}</text>
+          <text>{{formatTime(audioDuration)}}</text>
+        </view>
+      </view>
+      <view class="player-btn" bindtap="changePlaybackRate">
+        <text>{{playbackRate}}x</text>
+      </view>
     </view>
   </view>
 </view>
