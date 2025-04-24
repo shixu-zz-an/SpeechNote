@@ -71,20 +71,81 @@ Page({
     });
   },
 
-  // u52a0u8f7du6700u8fd1u4f1au8baeu8bb0u5f55
-  async loadRecentMeetings() {
+  // 加载最近会议记录
+  async loadRecentMeetings(pageSize = 5, pageNumber = 1) {
     try {
-      // u8fd9u91ccu66ffu6362u4e3au5b9eu9645u7684APIu8c03u7528
-      // const res = await app.request({
-      //   url: '/api/meetings/recent',
-      //   method: 'GET'
-      // });
-      // this.setData({
-      //   recentMeetings: res.data
-      // });
+      wx.showLoading({
+        title: '加载中...'
+      });
+      
+      console.log('开始请求最近会议记录数据');
+      // 调用后端接口获取会议记录，增加分页参数
+      const res = await app.request({
+        url: '/api/meetings',
+        method: 'GET',
+        data: {
+          pageSize,
+          pageNumber
+        }
+      });
+      
+      console.log('获取最近会议记录数据成功:', res);
+      
+      if (res.success && res.data) {
+        // 处理后端返回的数据
+        const meetings = res.data.map(item => {
+          // 从startTime中提取日期和时间
+          const startTime = new Date(item.startTime);
+          const endTime = new Date(item.endTime);
+          
+          // 计算会议时长（分钟）
+          const durationMs = endTime - startTime;
+          const durationMinutes = Math.floor(durationMs / (1000 * 60));
+          const hours = Math.floor(durationMinutes / 60);
+          const minutes = durationMinutes % 60;
+          const durationStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          
+          // 格式化时间为 HH:MM
+          const timeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;
+          
+          // 格式化日期为 MM-DD
+          const month = (startTime.getMonth() + 1).toString().padStart(2, '0');
+          const day = startTime.getDate().toString().padStart(2, '0');
+          const dateStr = `${month}-${day}`;
+          
+          // 来源映射
+          const sourceMap = {
+            1: '小程序',
+            2: '上传',
+            3: '导入'
+          };
+          
+          return {
+            id: item.id,
+            title: item.title,
+            time: `${dateStr} ${timeStr}`,
+            duration: durationStr,
+            source: sourceMap[item.source] || '未知',
+            storagePath: item.storagePath,
+            rawData: item // 保留原始数据，以备后续使用
+          };
+        });
+        
+        console.log('处理后的最近会议记录数据:', meetings);
+        
+        this.setData({
+          recentMeetings: meetings
+        });
+      } else {
+        throw new Error(res.message || '获取最近会议记录失败');
+      }
+      
+      wx.hideLoading();
     } catch (error) {
+      console.error('加载最近会议记录失败:', error);
+      wx.hideLoading();
       wx.showToast({
-        title: 'u52a0u8f7du5931u8d25',
+        title: '加载失败',
         icon: 'none'
       });
     }
@@ -121,6 +182,13 @@ Page({
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
       url: `/pages/record-detail/record-detail?id=${id}`
+    });
+  },
+
+  // u8df3u8f6cu5230u4f1au8baeu8bb0u5f55u9875u9762
+  navigateToRecords() {
+    wx.switchTab({
+      url: '/pages/records/records'
     });
   },
 

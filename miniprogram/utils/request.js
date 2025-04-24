@@ -19,7 +19,6 @@ const request = (options) => {
         'Content-Type': 'application/json',
         'Authorization': app.globalData.token
       },
-     
       success: (res) => {
         if (res.statusCode === 200) {
           resolve(res.data);

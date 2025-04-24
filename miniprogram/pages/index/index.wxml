@@ -79,7 +79,10 @@
 
   <!-- 最近会议列表 -->
   <view class="meeting-list">
-    <view class="meeting-date">最近会议</view>
+    <view class="meeting-header">
+      <view class="meeting-date">最近会议</view>
+      <view class="view-all" bindtap="navigateToRecords">查看全部</view>
+    </view>
     <view class="meeting-item" 
           wx:for="{{recentMeetings}}" 
           wx:key="id"
