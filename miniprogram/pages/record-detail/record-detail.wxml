@@ -1,17 +1,17 @@
 <view class="container">
   <!-- Header with back button and action buttons -->
-  <view class="header">
-    <navigator open-type="navigateBack" delta="1" class="back-btn">
+  <!-- <view class="header"> -->
+    <!-- <navigator open-type="navigateBack" delta="1" class="back-btn">
       <text class="iconfont icon-back"></text>
-    </navigator>
-    <view class="search-input">
+    </navigator> -->
+    <!-- <view class="search-input">
       <icon type="search" size="14" color="#999"></icon>
       <input placeholder="搜索记录" confirm-type="search" bindconfirm="searchRecording"></input>
-    </view>
-    <view class="action-btn share" bindtap="shareRecording">
+    </view> -->
+    <!-- <view class="action-btn share" bindtap="shareRecording">
       <text class="iconfont icon-share"></text>
     </view>
-  </view>
+  </view> -->
 
   <!-- Recording Info -->
   <view class="recording-info">

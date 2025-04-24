@@ -30,13 +30,23 @@
   flex: 1;
   display: flex;
   align-items: center;
+  background-color: #f0f2f5;
+  border-radius: 32rpx;
+  padding: 12rpx 24rpx;
   margin-right: 24rpx;
   color: #999;
 }
 
 .search-input .iconfont {
   font-size: 32rpx;
-  margin-right: 8rpx;
+  margin-right: 16rpx;
+}
+
+.search-input input {
+  flex: 1;
+  font-size: 28rpx;
+  height: 60rpx;
+  color: #333;
 }
 
 .search-placeholder {

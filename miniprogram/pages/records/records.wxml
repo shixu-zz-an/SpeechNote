@@ -1,11 +1,11 @@
 <view class="page-container">
   <!-- 顶部搜索栏 -->
   <view class="header">
-    <view class="page-title">会议记录</view>
+    <!-- <view class="page-title">会议记录</view> -->
     <view class="search-bar">
-      <view class="search-input" bindtap="onSearchTap">
+      <view class="search-input">
         <text class="iconfont icon-search"></text>
-        <text class="search-placeholder">搜索会议记录</text>
+        <input placeholder="搜索会议记录" confirm-type="search" bindconfirm="searchMeetings" bindinput="onSearchInput" value="{{searchQuery}}"></input>
       </view>
       <view class="filter-button" bindtap="showFilter">
         <text class="iconfont icon-filter"></text>
