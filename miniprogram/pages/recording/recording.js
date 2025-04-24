@@ -25,6 +25,7 @@ Page({
   data: {
     isRecording: false,
     socketStatus: '', // closed, connecting, connected
+    recordingId: '',
     transcripts: [],
     lastTranscriptId: null,
     formattedDate: '',
@@ -109,7 +110,19 @@ Page({
       });
     });
   },
-
+  // 辅助函数
+  formatDate: function(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
+  
+  formatTime: function(date) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  },
   // 将Float32Array转换为Int16Array
   float32ToInt16(float32Array) {
     const int16Array = new Int16Array(float32Array.length);
@@ -165,9 +178,9 @@ Page({
       // console.log('合并后的缓冲区长度:', newBuffer.length);
 
       // 当缓冲区累积到1024字节或更多时发送数据
-      if (newBuffer.length >= 1024) {
+      if (newBuffer.length >= 1920) {
         // 截取1024字节发送
-        const sendData = newBuffer.slice(0, 1024);
+        const sendData = newBuffer.slice(0, 1920);
         
         if (this.data.socketStatus === 'connected') {
           console.log('发送数据长度:', sendData.length);
@@ -175,7 +188,7 @@ Page({
         }
 
         // 保存剩余的数据到缓冲区
-        const remainingBuffer = newBuffer.slice(1024);
+        const remainingBuffer = newBuffer.slice(1920);
         console.log('剩余数据长度:', remainingBuffer.length);
         this.setData({
           audioBuffer: remainingBuffer
@@ -546,56 +559,100 @@ Page({
     });
   },
 
-  handleWebSocketMessage(message) {
-    try {
-      const outerData = JSON.parse(message.data);
-      const data = JSON.parse(outerData.transcription);
+  handleWebSocketMessage(res) {
+   
+      console.log('WebSocket消息已接收',res.data);
       
-      if (data && data.text) {
-        // 使用当前recordingTime作为时间戳
-        const currentTime = this.data.recordingTime || 0;
-        
-        const transcript = {
-          id: Date.now(),
-          text: data.text,
-          isFinal: data.is_final,
-          timestamp: currentTime
-        };
-
-        const transcripts = [...this.data.transcripts];
-        
-        // 如果是最终结果，移除对应的临时结果
-        if (data.is_final && this.data.lastTranscriptId) {
-          const index = transcripts.findIndex(t => t.id === this.data.lastTranscriptId);
-          if (index !== -1) {
-            transcripts.splice(index, 1);
-          }
+      try {
+        const data = JSON.parse(res.data);
+    
+        // 处理服务器返回的消息
+        switch (data.type) {
+          case 'START_RECORDING':
+            // 服务器返回录音ID和初始化状态
+            this.setData({
+              recordingId: data.recordId
+            });
+            break;
+          
+          case 'TRANSCRIPTION':
+            // 处理转写结果
+            this.handleTranscription(data);
+            break;
+          
+          case 'error':
+            // 处理错误
+            console.error('服务器错误:', data.message);
+            wx.showToast({
+              title: '服务器错误: ' + data.message,
+              icon: 'none'
+            });
+            break;
         }
-        
-        transcripts.push(transcript);
-        
-        this.setData({
-          transcripts,
-          lastTranscriptId: data.is_final ? null : transcript.id
-        });
-
-        // 确保滚动到最新消息
-        wx.createSelectorQuery()
-          .select('.transcription-area')
-          .node()
-          .exec((res) => {
-            const scrollView = res[0];
-            if (scrollView && scrollView.scrollTo) {
-              scrollView.scrollTo({
-                top: 999999,
-                behavior: 'smooth'
-              });
-            }
-          });
+      } catch (error) {
+        console.error('解析WebSocket消息失败:', error);
       }
-    } catch (error) {
-      console.error('处理WebSocket消息失败:', error);
-    }
+   
+  },
+
+  handleTranscription(data){
+    
+     // 处理转写结果
+     const { text, timestamp=Date.now(), speakerId="speaker" } = data;
+  
+     if (!text || text.trim() === '') {
+       return;
+     }
+     
+     // 格式化时间戳
+     const date = new Date(timestamp);
+     const formattedTime = this.formatTime(date);
+ 
+     // 添加到转写结果列表
+     const transcripts = this.data.transcripts;
+     
+     // 检查是否已存在该时间戳的转写，如果存在则更新
+     const existingIndex = transcripts.findIndex(item => 
+       Math.abs(new Date(item.timestamp).getTime() - timestamp) < 1000
+     );
+     
+     if (existingIndex >= 0) {
+       // 更新现有的转写
+       transcripts[existingIndex].text = text;
+       transcripts[existingIndex].speakerId = speakerId;
+     } else {
+       // 添加新的转写
+       transcripts.push({
+         text,
+         timestamp,
+         formattedTime,
+         speakerId
+       });
+       
+       // 按时间戳排序
+       transcripts.sort((a, b) => a.timestamp - b.timestamp);
+     }
+     
+     // 更新数据
+     this.setData({
+       transcripts: transcripts
+     });
+
+      // 确保滚动到最新消息
+      wx.createSelectorQuery()
+        .select('.transcription-area')
+        .node()
+        .exec((res) => {
+          const scrollView = res[0];
+          if (scrollView && scrollView.scrollTo) {
+            scrollView.scrollTo({
+              top: 999999,
+              behavior: 'smooth'
+            });
+          }
+        });
+   
+
   },
 
   updateDateTime() {
