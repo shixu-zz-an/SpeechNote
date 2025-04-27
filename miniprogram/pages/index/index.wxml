@@ -1,111 +1,92 @@
 <view class="page-container">
-  <!-- 广告轮播区域 -->
-  <view class="page-section">
-    <swiper class="banner-swiper" 
-            indicator-dots="{{true}}"
-            autoplay="{{true}}"
-            interval="{{3000}}"
-            duration="{{500}}"
-            circular="{{true}}">
-      <swiper-item wx:for="{{banners}}" wx:key="id">
-        <image src="{{item.imageUrl}}" mode="aspectFill" class="banner-image"/>
-      </swiper-item>
-    </swiper>
-  </view>
+  <!-- 固定部分：广告轮播区域和功能卡片 -->
+  <view class="fixed-section">
+    <!-- 广告轮播区域 -->
+    <view class="page-section">
+      <swiper class="banner-swiper" 
+              indicator-dots="{{true}}"
+              autoplay="{{true}}"
+              interval="{{3000}}"
+              duration="{{500}}"
+              circular="{{true}}">
+        <swiper-item wx:for="{{banners}}" wx:key="id">
+          <image src="{{item.imageUrl}}" mode="aspectFill" class="banner-image"/>
+        </swiper-item>
+      </swiper>
+    </view>
 
-  <!-- 版本选择区域
-  <view class="page-section">
-    <view class="version-tabs">
-      <view class="tab-header">
-        <view class="tab {{currentVersion === 'free' ? 'active' : ''}}" 
-              bindtap="switchVersion" 
-              data-version="free">
-          免费版
+    <!-- 功能卡片区域 -->
+    <view class="feature-grid">
+      <view class="feature-card" bindtap="navigateTo" data-path="/pages/recording/recording">
+        <view class="feature-icon blue">
+          <text class="iconfont icon-mic"></text>
         </view>
-        <view class="tab {{currentVersion === 'pro' ? 'active' : ''}}" 
-              bindtap="switchVersion" 
-              data-version="pro">
-          专业版
+        <view class="feature-text">
+          <view class="feature-title">实时录音</view>
+          <view class="feature-desc">实时转写 | 会议纪要 AI 总结</view>
         </view>
       </view>
-      <view class="tab-content">
-        <text class="version-desc">{{versionDesc}}</text>
+
+      <view class="feature-card" bindtap="navigateTo" data-path="/pages/upload/upload">
+        <view class="feature-icon purple">
+          <text class="iconfont icon-upload"></text>
+        </view>
+        <view class="feature-text">
+          <view class="feature-title">上传文件</view>
+          <view class="feature-desc">支持音频文件上传转写</view>
+        </view>
       </view>
     </view>
-  </view> -->
-
-  <!-- 功能卡片区域 -->
-  <view class="feature-grid">
-    <view class="feature-card" bindtap="navigateTo" data-path="/pages/recording/recording">
-      <view class="feature-icon blue">
-        <text class="iconfont icon-mic"></text>
-      </view>
-      <view class="feature-text">
-        <view class="feature-title">实时录音</view>
-        <view class="feature-desc">实时转写 | 会议纪要 AI 总结</view>
-      </view>
-    </view>
-
-    <view class="feature-card" bindtap="navigateTo" data-path="/pages/upload/upload">
-      <view class="feature-icon purple">
-        <text class="iconfont icon-upload"></text>
-      </view>
-      <view class="feature-text">
-        <view class="feature-title">上传文件</view>
-        <view class="feature-desc">支持音频文件上传转写</view>
-      </view>
-    </view>
-
-    <!-- <view class="feature-card" bindtap="navigateTo" data-path="/pages/schedule/schedule">
-      <view class="feature-icon purple">
-        <text class="iconfont icon-calendar"></text>
-      </view>
-      <view class="feature-text">
-        <view class="feature-title">会议预定</view>
-        <view class="feature-desc">预约会议并自动录音转写</view>
-      </view>
-    </view>
-
-    <view class="feature-card">
-      <view class="feature-icon blue">
-        <text class="iconfont icon-more"></text>
-      </view>
-      <view class="feature-text">
-        <view class="feature-title">更多功能</view>
-        <view class="feature-desc">探索更多实用工具</view>
-      </view>
-    </view> -->
   </view>
 
-  <!-- 最近会议列表 -->
-  <view class="meeting-list">
+  <!-- 可滚动部分：最近会议列表 -->
+  <view class="meeting-list-container">
     <view class="meeting-header">
       <view class="meeting-date">最近会议</view>
       <view class="view-all" bindtap="navigateToRecords">查看全部</view>
     </view>
-    <view class="meeting-item" 
-          wx:for="{{recentMeetings}}" 
-          wx:key="id"
-          bindtap="navigateToDetail"
-          data-id="{{item.id}}">
-      <view class="meeting-title">
-        <view class="play-button">
-          <text class="iconfont icon-play"></text>
+    
+    <scroll-view 
+      class="scrollable-meeting-list"
+      scroll-y="{{true}}" 
+      refresher-enabled="{{true}}"
+      refresher-threshold="{{80}}"
+      refresher-default-style="black"
+      refresher-background="#f2f2f2"
+      refresher-triggered="{{isRefreshing}}"
+      bindrefresherrefresh="onPullDownRefresh">
+      
+      <view class="meeting-list">
+        <view class="meeting-item" 
+              wx:for="{{recentMeetings}}" 
+              wx:key="id"
+              bindtap="navigateToDetail"
+              data-id="{{item.id}}">
+          <view class="meeting-title">
+            <view class="play-button">
+              <text class="iconfont icon-play"></text>
+            </view>
+            <text class="meeting-name">{{item.title}}</text>
+          </view>
+          <view class="meeting-info">
+            <view class="meeting-time">
+              <text class="iconfont icon-time info-icon"></text>
+              <text>{{item.time}}</text>
+            </view>
+            <view class="meeting-duration">
+              <text class="iconfont icon-duration info-icon"></text>
+              <text>{{item.duration}}</text>
+            </view>
+            <text>{{item.source}}</text>
+          </view>
         </view>
-        <text class="meeting-name">{{item.title}}</text>
+        
+        <!-- 无数据提示 -->
+        <view class="empty-list" wx:if="{{recentMeetings.length === 0}}">
+          <text>暂无会议记录</text>
+        </view>
       </view>
-      <view class="meeting-info">
-        <view class="meeting-time">
-          <text class="iconfont icon-time info-icon"></text>
-          <text>{{item.time}}</text>
-        </view>
-        <view class="meeting-duration">
-          <text class="iconfont icon-duration info-icon"></text>
-          <text>{{item.duration}}</text>
-        </view>
-        <text>{{item.source}}</text>
-      </view>
-    </view>
+    </scroll-view>
   </view>
 
   <!-- 底部录音按钮 -->

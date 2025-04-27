@@ -1,0 +1,61 @@
+<view class="wemark_wrapper">
+  <block wx:for="{{parsedData.tokens}}" wx:key="index" wx:for-index="index" wx:for-item="token">
+    <!-- 标题 -->
+    <view wx:if="{{token.type === 'heading'}}" class="wemark_block_h{{token.level}}">
+      <text>{{token.content}}</text>
+    </view>
+    
+    <!-- 段落 -->
+    <view wx:elif="{{token.type === 'paragraph'}}" class="wemark_block_p">
+      <block wx:for="{{token.content}}" wx:key="index" wx:for-index="index" wx:for-item="inline">
+        <text wx:if="{{inline.type === 'text'}}">{{inline.content}}</text>
+        <text wx:elif="{{inline.type === 'strong'}}" class="wemark_inline_strong">{{inline.content}}</text>
+        <text wx:elif="{{inline.type === 'em'}}" class="wemark_inline_em">{{inline.content}}</text>
+        <text wx:elif="{{inline.type === 'deleted'}}" class="wemark_inline_deleted">{{inline.content}}</text>
+        <text wx:elif="{{inline.type === 'inlineCode'}}" class="wemark_inline_code">{{inline.content}}</text>
+        <navigator wx:elif="{{inline.type === 'link'}}" url="{{inline.data}}" class="wemark_inline_link">{{inline.content}}</navigator>
+      </block>
+    </view>
+    
+    <!-- 水平分割线 -->
+    <view wx:elif="{{token.type === 'hr'}}" class="wemark_block_hr"></view>
+    
+    <!-- 代码块 -->
+    <view wx:elif="{{token.type === 'code'}}" class="wemark_block_code">
+      <text>{{token.content}}</text>
+    </view>
+    
+    <!-- 无序列表 -->
+    <view wx:elif="{{token.type === 'ul'}}" class="wemark_block_ul">
+      <view class="wemark_ul_item">
+        <text class="wemark_ul_bullet">•</text>
+        <block wx:for="{{token.content}}" wx:key="index" wx:for-index="index" wx:for-item="inline">
+          <text wx:if="{{inline.type === 'text'}}">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'strong'}}" class="wemark_inline_strong">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'em'}}" class="wemark_inline_em">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'deleted'}}" class="wemark_inline_deleted">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'inlineCode'}}" class="wemark_inline_code">{{inline.content}}</text>
+          <navigator wx:elif="{{inline.type === 'link'}}" url="{{inline.data}}" class="wemark_inline_link">{{inline.content}}</navigator>
+        </block>
+      </view>
+    </view>
+    
+    <!-- 有序列表 -->
+    <view wx:elif="{{token.type === 'ol'}}" class="wemark_block_ol">
+      <view class="wemark_ol_item">
+        <text class="wemark_ol_number">{{index + 1}}.</text>
+        <block wx:for="{{token.content}}" wx:key="index" wx:for-index="index" wx:for-item="inline">
+          <text wx:if="{{inline.type === 'text'}}">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'strong'}}" class="wemark_inline_strong">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'em'}}" class="wemark_inline_em">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'deleted'}}" class="wemark_inline_deleted">{{inline.content}}</text>
+          <text wx:elif="{{inline.type === 'inlineCode'}}" class="wemark_inline_code">{{inline.content}}</text>
+          <navigator wx:elif="{{inline.type === 'link'}}" url="{{inline.data}}" class="wemark_inline_link">{{inline.content}}</navigator>
+        </block>
+      </view>
+    </view>
+    
+    <!-- 空行 -->
+    <view wx:elif="{{token.type === 'space'}}" class="wemark_block_space"></view>
+  </block>
+</view>

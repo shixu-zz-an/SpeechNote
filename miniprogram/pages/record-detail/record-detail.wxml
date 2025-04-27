@@ -25,28 +25,28 @@
 
   <!-- Tab Navigation -->
   <view class="tab-nav">
-    <view class="tab {{activeTab === 'transcript' ? 'active' : ''}}" bindtap="switchTab" data-tab="transcript">会议纪要</view>
-    <view class="tab {{activeTab === 'content' ? 'active' : ''}}" bindtap="switchTab" data-tab="content">原文</view>
+    <view class="tab {{activeTab === 'transcript' ? 'active' : ''}}" bindtap="switchTab" data-tab="transcript">会议总结</view>
+    <view class="tab {{activeTab === 'content' ? 'active' : ''}}" bindtap="switchTab" data-tab="content">会议原文</view>
     <view class="tab {{activeTab === 'ai' ? 'active' : ''}}" bindtap="switchTab" data-tab="ai">AI对话</view>
   </view>
 
   <!-- Content Area -->
   <view class="content-area">
-    <!-- Transcript Tab -->
+    <!-- Transcript Tab (Meeting Summary) -->
     <view class="tab-content transcript-content" wx:if="{{activeTab === 'transcript'}}">
-      <view class="bullet-list" wx:if="{{meeting.summary && meeting.summary.length > 0}}">
-        <view class="bullet-item" wx:for="{{meeting.summary}}" wx:key="index">{{item}}</view>
+      <view class="summary-content" wx:if="{{meeting.summaryMarkdown}}">
+        <wemark md="{{meeting.summaryMarkdown}}" highlight type="wemark"></wemark>
       </view>
       <view class="empty-content" wx:else>
-        <text>暂无会议纪要内容</text>
+        <text>暂无会议总结内容</text>
       </view>
     </view>
 
-    <!-- Original Content Tab -->
+    <!-- Original Content Tab (Meeting Segments) -->
     <view class="tab-content original-content" wx:if="{{activeTab === 'content'}}">
-      <block wx:for="{{transcripts}}" wx:key="index">
+      <block wx:for="{{transcripts}}" wx:key="id">
         <view class="speaker-block">
-          <view class="speaker-info" wx:if="{{item.speakerId !== undefined}}">
+          <view class="speaker-info">
             <view class="speaker-avatar">
               <text>{{item.speakerId[0]}}</text>
             </view>

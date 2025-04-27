@@ -14,39 +14,68 @@
   </view>
 
   <!-- 会议列表 -->
-  <scroll-view class="meeting-list" scroll-y="true">
-    <block wx:for="{{meetingGroups}}" wx:key="date">
+  <scroll-view 
+    class="meeting-list" 
+    scroll-y="true" 
+    bindscrolltolower="loadMoreMeetings"
+    lower-threshold="50"
+    refresher-enabled="{{true}}"
+    refresher-threshold="50"
+    refresher-default-style="black"
+    refresher-background="#f2f2f2"
+    refresher-triggered="{{isRefreshing}}"
+    bindrefresherrefresh="onRefresh">
+    <block wx:for="{{meetingGroups}}" wx:key="date" wx:for-index="groupIndex">
       <view class="meeting-date">{{item.date}}</view>
-      <view class="meeting-item" 
-            wx:for="{{item.meetings}}" 
-            wx:key="id"
-            wx:for-item="meeting"
-            bindtap="navigateToDetail"
-            data-id="{{meeting.id}}">
-        <view class="meeting-title">
-          <view class="play-button">
-            <text class="iconfont icon-play"></text>
+      <block wx:for="{{item.meetings}}" wx:key="id" wx:for-item="meeting" wx:for-index="meetingIndex">
+        <view class="sliding-item-container">
+          <view class="sliding-item {{meeting.showDelete ? 'slide-left' : ''}}" 
+                bindtouchstart="touchStart" 
+                bindtouchmove="touchMove" 
+                bindtouchend="touchEnd"
+                data-id="{{meeting.id}}"
+                data-index="{{meetingIndex}}"
+                data-group-index="{{groupIndex}}">
+            <view class="meeting-item" catchtap="navigateToDetail" data-id="{{meeting.id}}">
+              <view class="meeting-title">
+                <view class="play-button">
+                  <text class="iconfont icon-play"></text>
+                </view>
+                <text class="meeting-name">{{meeting.title}}</text>
+              </view>
+              <view class="meeting-info">
+                <view class="meeting-time">
+                  <text class="iconfont icon-time info-icon"></text>
+                  <text>{{meeting.time}}</text>
+                </view>
+                <view class="meeting-duration">
+                  <text class="iconfont icon-duration info-icon"></text>
+                  <text>{{meeting.duration}}</text>
+                </view>
+                <text>{{meeting.source}}</text>
+              </view>
+            </view>
+            <view class="delete-btn" catchtap="deleteMeeting" data-id="{{meeting.id}}">删除</view>
           </view>
-          <text class="meeting-name">{{meeting.title}}</text>
         </view>
-        <view class="meeting-info">
-          <view class="meeting-time">
-            <text class="iconfont icon-time info-icon"></text>
-            <text>{{meeting.time}}</text>
-          </view>
-          <view class="meeting-duration">
-            <text class="iconfont icon-duration info-icon"></text>
-            <text>{{meeting.duration}}</text>
-          </view>
-          <text>{{meeting.source}}</text>
-        </view>
-      </view>
+      </block>
     </block>
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{meetings.length === 0}}">
       <image src="/assets/images/empty-records.png" mode="aspectFit" class="empty-image"/>
       <text class="empty-text">暂无会议记录</text>
+    </view>
+    
+    <!-- 加载更多提示 -->
+    <view class="loading-more" wx:if="{{isLoading && meetings.length > 0}}">
+      <view class="loading-icon"></view>
+      <text>加载中...</text>
+    </view>
+    
+    <!-- 已加载全部提示 -->
+    <view class="no-more" wx:if="{{hasReachedEnd && meetings.length > 0}}">
+      <text>已加载全部内容</text>
     </view>
   </scroll-view>
 

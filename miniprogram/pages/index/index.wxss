@@ -2,6 +2,13 @@
   min-height: 100vh;
   background-color: #f5f5f5;
   padding-bottom: 160rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 固定部分样式 */
+.fixed-section {
+  flex-shrink: 0;
 }
 
 .page-section {
@@ -134,12 +141,12 @@
   text-overflow: ellipsis;
 }
 
-/* 会议列表 */
-.meeting-list {
-  background-color: white;
-  border-radius: 24rpx;
-  margin: 24rpx;
-  padding: 16rpx 0;
+/* 会议列表容器 */
+.meeting-list-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24rpx;
 }
 
 .meeting-header {
@@ -147,8 +154,24 @@
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 32rpx;
+  background-color: white;
+  border-top-left-radius: 24rpx;
+  border-top-right-radius: 24rpx;
+  margin: 0 24rpx;
   border-bottom: 2rpx solid #f5f5f5;
-  margin-bottom: 16rpx;
+}
+
+.scrollable-meeting-list {
+  flex: 1;
+  height: calc(100vh - 600rpx); /* 根据实际情况调整高度 */
+}
+
+.meeting-list {
+  background-color: white;
+  border-bottom-left-radius: 24rpx;
+  border-bottom-right-radius: 24rpx;
+  margin: 0 24rpx;
+  padding-bottom: 16rpx;
 }
 
 .meeting-date {
@@ -252,4 +275,14 @@
 .record-button-icon {
   margin-right: 12rpx;
   font-size: 36rpx;
+}
+
+/* 空列表提示 */
+.empty-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }

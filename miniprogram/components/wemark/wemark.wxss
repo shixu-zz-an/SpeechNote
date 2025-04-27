@@ -1,0 +1,120 @@
+.wemark_wrapper {
+  margin: 10px 0;
+  font-size: 32rpx;
+  line-height: 1.8em;
+  color: #333;
+}
+
+/* 标题样式 */
+.wemark_block_h1 {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin: 30rpx 0;
+  color: #000;
+}
+
+.wemark_block_h2 {
+  font-size: 40rpx;
+  font-weight: bold;
+  margin: 25rpx 0;
+  color: #000;
+}
+
+.wemark_block_h3 {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin: 20rpx 0;
+  color: #000;
+}
+
+.wemark_block_h4 {
+  font-size: 34rpx;
+  font-weight: bold;
+  margin: 15rpx 0;
+  color: #000;
+}
+
+.wemark_block_h5 {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin: 10rpx 0;
+  color: #000;
+}
+
+.wemark_block_h6 {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin: 5rpx 0;
+  color: #000;
+}
+
+/* 段落样式 */
+.wemark_block_p {
+  margin: 20rpx 0;
+}
+
+/* 水平分割线 */
+.wemark_block_hr {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 30rpx 0;
+}
+
+/* 代码块 */
+.wemark_block_code {
+  background-color: #f6f8fa;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  font-family: monospace;
+  white-space: pre;
+  overflow-x: auto;
+  margin: 20rpx 0;
+}
+
+/* 列表样式 */
+.wemark_block_ul, .wemark_block_ol {
+  margin: 10rpx 0;
+}
+
+.wemark_ul_item, .wemark_ol_item {
+  display: flex;
+  margin: 10rpx 0;
+}
+
+.wemark_ul_bullet {
+  margin-right: 10rpx;
+}
+
+.wemark_ol_number {
+  margin-right: 10rpx;
+}
+
+/* 行内样式 */
+.wemark_inline_strong {
+  font-weight: bold;
+}
+
+.wemark_inline_em {
+  font-style: italic;
+}
+
+.wemark_inline_deleted {
+  text-decoration: line-through;
+}
+
+.wemark_inline_code {
+  background-color: #f6f8fa;
+  padding: 0 8rpx;
+  border-radius: 4rpx;
+  font-family: monospace;
+}
+
+.wemark_inline_link {
+  color: #3E7BFA;
+  text-decoration: underline;
+}
+
+/* 空行 */
+.wemark_block_space {
+  height: 20rpx;
+}

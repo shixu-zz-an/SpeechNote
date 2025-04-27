@@ -28,17 +28,11 @@ Page({
       
       // 使用模拟数据（仅开发时使用）
       this.loadMockData('mock-id-123');
-      
-      // 初始化音频播放器
-      this.initAudioPlayer();
       return;
     }
     
     // 获取会议记录详情
     this.loadMeetingDetail(id);
-    
-    // 初始化音频播放器
-    this.initAudioPlayer();
   },
   
   onUnload() {
@@ -95,6 +89,10 @@ Page({
           3: '导入'
         };
         
+        // 检查音频路径是否存在
+        const audioUrl = meetingData.storagePath || '';
+        console.log('音频路径:', audioUrl);
+        
         // 构建会议对象
         const meeting = {
           id: meetingData.id,
@@ -103,17 +101,17 @@ Page({
           time: timeStr,
           duration: durationStr,
           source: sourceMap[meetingData.source] || '未知',
-          audioUrl: meetingData.storagePath,
-          summary: meetingData.summary ? meetingData.summary.split('\n') : []
+          audioUrl: audioUrl,
+          summary: [] // 会议总结将通过单独的API获取
         };
 
-        // 处理转写内容
-        const transcripts = meetingData.transcripts ? meetingData.transcripts.map(item => ({
-          speakerId: item.speakerId || '发言人',
-          text: item.text,
-          timestamp: new Date(item.timestamp).getTime(),
-          formattedTime: this.formatTime(new Date(item.timestamp))
-        })) : [];
+        this.setData({ meeting });
+        
+        // 获取会议总结和会议原文
+        await Promise.all([
+          this.loadMeetingSummary(id),
+          this.loadMeetingSegments(id)
+        ]);
 
         // 初始化AI聊天
         const aiChat = [
@@ -125,32 +123,88 @@ Page({
           }
         ];
 
-        console.log('设置数据:', { meeting, transcripts, aiChat });
-        this.setData({ 
-          meeting,
-          transcripts,
-          aiChat,
-          audioDuration: durationMinutes * 60 // 转换为秒
-        });
+        this.setData({ aiChat });
+        
+        // 在数据加载完成后初始化音频播放器
+        this.initAudioPlayer();
+        
       } else {
-        throw new Error(res.message || '获取会议详情失败');
+        wx.showToast({
+          title: '获取会议详情失败',
+          icon: 'none'
+        });
       }
-      
-      wx.hideLoading();
     } catch (error) {
-      console.error('加载失败:', error);
-      wx.hideLoading();
+      console.error('获取会议详情失败:', error);
       wx.showToast({
-        title: '加载失败',
+        title: '获取会议详情失败',
         icon: 'none'
       });
-      
-      // 使用模拟数据（仅开发时使用）
-      console.log('使用模拟数据');
-      this.loadMockData(id);
+    } finally {
+      wx.hideLoading();
     }
   },
   
+  // 加载会议总结
+  async loadMeetingSummary(meetingId) {
+    try {
+      console.log('开始请求会议总结API');
+      const res = await app.request({
+        url: `/api/meetings/${meetingId}/summary`,
+        method: 'GET'
+      });
+
+      console.log('会议总结API响应:', res);
+      if (res.success && res.data && res.data.content) {
+        // 设置会议总结内容（Markdown格式）
+        this.setData({
+          'meeting.summaryMarkdown': res.data.content
+        });
+      } else {
+        console.log('会议总结为空或请求失败');
+      }
+    } catch (error) {
+      console.error('获取会议总结失败:', error);
+    }
+  },
+  
+  // 加载会议原文（语音片段）
+  async loadMeetingSegments(meetingId) {
+    try {
+      console.log('开始请求会议原文API');
+      const res = await app.request({
+        url: `/api/meetings/${meetingId}/segments`,
+        method: 'GET'
+      });
+      
+      console.log('会议原文API响应:', res);
+      if (res.success && res.data && res.data.length > 0) {
+        // 处理会议原文数据
+        const transcripts = res.data.map(segment => {
+          // 计算时间偏移（毫秒转秒）
+          const startSeconds = segment.startOffset / 1000;
+          
+          return {
+            id: segment.id,
+            speakerId: segment.speaker || '未知',
+            text: segment.content || '',
+            startOffset: segment.startOffset,
+            endOffset: segment.endOffset,
+            formattedTime: this.formatTime(startSeconds)
+          };
+        });
+        
+        this.setData({ transcripts });
+      } else {
+        console.log('会议原文为空或请求失败');
+        this.setData({ transcripts: [] });
+      }
+    } catch (error) {
+      console.error('获取会议原文失败:', error);
+      this.setData({ transcripts: [] });
+    }
+  },
+
   // 加载模拟数据（仅开发时使用）
   loadMockData(id) {
     console.log('loadMockData id:', id);
@@ -222,8 +276,29 @@ Page({
 
   // 初始化音频播放器
   initAudioPlayer() {
+    console.log('初始化音频播放器');
+    
+    // 检查音频URL是否存在
+    if (!this.data.meeting || !this.data.meeting.audioUrl) {
+      console.warn('音频URL不存在，无法初始化播放器');
+      return;
+    }
+    
+    console.log('音频URL:', this.data.meeting.audioUrl);
+    
     // 创建音频上下文
     const audioContext = wx.createInnerAudioContext();
+    
+    // 设置音频源
+    audioContext.src = this.data.meeting.audioUrl;
+    
+    // 自动获取音频时长
+    audioContext.onCanplay(() => {
+      console.log('音频可以播放，时长:', audioContext.duration);
+      this.setData({
+        audioDuration: audioContext.duration || 0
+      });
+    });
     
     // 监听播放进度更新
     audioContext.onTimeUpdate(() => {

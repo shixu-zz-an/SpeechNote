@@ -40,7 +40,8 @@ Page({
         source: 'u5c0fu7a0bu5e8f'
       }
     ],
-    showRecordButton: true
+    showRecordButton: true,
+    isRefreshing: false // 添加下拉刷新状态
   },
 
   onLoad() {
@@ -68,6 +69,22 @@ Page({
     // u79bbu5f00u9875u9762u65f6u9690u85cfu5f55u97f3u6309u94ae
     this.setData({
       showRecordButton: false
+    });
+  },
+
+  // 下拉刷新处理函数
+  onPullDownRefresh() {
+    console.log('触发下拉刷新');
+    this.setData({ isRefreshing: true });
+    
+    // 重新加载最近会议记录
+    this.loadRecentMeetings().then(() => {
+      // 完成刷新
+      this.setData({ isRefreshing: false });
+      console.log('下拉刷新完成');
+    }).catch(error => {
+      console.error('下拉刷新失败:', error);
+      this.setData({ isRefreshing: false });
     });
   },
 
@@ -148,6 +165,9 @@ Page({
         title: '加载失败',
         icon: 'none'
       });
+      
+      // 抛出错误，以便在链式调用中处理
+      throw error;
     }
   },
 

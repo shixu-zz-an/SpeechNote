@@ -83,6 +83,9 @@
   border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .meeting-item:active {
@@ -93,7 +96,7 @@
 .meeting-title {
   display: flex;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 8rpx;
 }
 
 .play-button {
@@ -138,6 +141,46 @@
   margin-right: 8rpx;
 }
 
+/* 可滑动删除的列表项样式 */
+.sliding-item-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rpx;
+}
+
+.sliding-item {
+  width: 100%;
+  position: relative;
+  display: flex;
+  transition: transform 0.25s cubic-bezier(0.1, 0.5, 0.5, 1); /* 改善滑动的过渡效果 */
+}
+
+.slide-left {
+  transform: translateX(-150rpx);
+}
+
+.meeting-item {
+  width: 100%;
+  background-color: #fff;
+  z-index: 2;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 0;
+  right: -150rpx; /* 默认隐藏在右侧 */
+  width: 150rpx;
+  height: 100%; /* 固定删除按钮高度与会议项高度一致 */
+  background-color: #ff4d4f;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  font-size: 28rpx;
+}
+
 /* 空状态 */
 .empty-state {
   position: absolute;
@@ -162,6 +205,39 @@
 .empty-text {
   font-size: 28rpx;
   color: #999;
+}
+
+/* 加载更多提示 */
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30rpx 0;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.loading-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 16rpx;
+  border: 3rpx solid #f3f3f3;
+  border-top: 3rpx solid #1677ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 已加载全部提示 */
+.no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  color: #999;
+  font-size: 24rpx;
 }
 
 /* 录音按钮样式保留但不使用 */
