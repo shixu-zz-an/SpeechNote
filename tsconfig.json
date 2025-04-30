@@ -23,7 +23,7 @@
   },
   "include": [
     "./**/*.ts"
-, "miniprogram/pages/purchase/purchase.js"  ],
+  ],
   "exclude": [
     "node_modules"
   ]

@@ -35,11 +35,11 @@ Page({
 
   // 选择套餐
   selectPackage: function(e) {
-    const package = e.currentTarget.dataset.package;
+    const packageItem = e.currentTarget.dataset.package;
     this.setData({
-      selectedPackage: package,
+      selectedPackage: packageItem,
       selectedSingle: '',
-      totalPrice: this.data.prices[package]
+      totalPrice: this.data.prices[packageItem]
     });
   },
 
