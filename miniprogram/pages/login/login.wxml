@@ -9,26 +9,176 @@
     <view class="welcome-text">欢迎使用语音笔记</view>
     <view class="sub-text">请授权微信登录以使用完整功能</view>
 
-    <!-- 新版获取用户信息按钮 -->
-    <button 
-      wx:if="{{canIUseGetUserProfile}}" 
-      class="login-btn" 
-      bindtap="getUserProfile"
-    >微信授权登录</button>
-    
-    <!-- 兼容旧版获取用户信息按钮 -->
-    <button 
-      wx:else 
-      class="login-btn" 
-      open-type="getUserInfo" 
-      bindgetuserinfo="getUserInfo"
-    >微信授权登录</button>
-
-    <!-- 跳过按钮 -->
-    <view class="skip-btn" bindtap="wxLogin">跳过授权，直接登录</view>
+    <!-- 登录按钮区域 -->
+    <view class="auth-area">
+      <!-- 主要授权登录按钮 -->
+      <button 
+        class="login-btn primary-btn" 
+        bindtap="authorizeAndLogin"
+        disabled="{{isLoggingIn}}"
+      >
+        <image class="btn-icon" src="/assets/images/wechat.png" mode="aspectFit"></image>
+        <text>微信一键登录</text>
+      </button>
+      
+      <!-- 手机号授权按钮（隐藏在页面中，但可以通过JS调用） -->
+      <button 
+        class="hidden-btn" 
+        open-type="getPhoneNumber" 
+        bindgetphonenumber="getPhoneNumber"
+      ></button>
+      
+      <!-- 跳过授权按钮 -->
+      <view class="skip-btn" bindtap="skipAuthLogin" wx:if="{{!isLoggingIn}}">跳过授权，直接登录</view>
+      
+      <!-- 登录中提示 -->
+      <view class="login-status" wx:if="{{isLoggingIn}}">
+        <view class="loading-icon"></view>
+        <text>正在登录中...</text>
+      </view>
+    </view>
   </view>
 
   <view class="footer">
-    <view class="copyright">© 2025 语音笔记</view>
+    <view class="copyright"> 2025 语音笔记</view>
   </view>
 </view>
+
+<!-- 样式 -->
+<wxss>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100vh;
+  padding: 40rpx;
+  box-sizing: border-box;
+  background-color: #f8f8f8;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 80rpx;
+}
+
+.logo {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.app-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-top: 24rpx;
+  color: #333;
+}
+
+.login-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-text {
+  font-size: 40rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  color: #333;
+}
+
+.sub-text {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 60rpx;
+  text-align: center;
+}
+
+.auth-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-btn {
+  width: 80%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+  position: relative;
+  border: none;
+}
+
+.primary-btn {
+  background-color: #07c160;
+  color: white;
+  font-size: 32rpx;
+  font-weight: 500;
+  box-shadow: 0 8rpx 16rpx rgba(7, 193, 96, 0.3);
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 12rpx;
+}
+
+.hidden-btn {
+  position: absolute;
+  opacity: 0;
+  width: 1rpx;
+  height: 1rpx;
+  overflow: hidden;
+}
+
+.skip-btn {
+  font-size: 28rpx;
+  color: #999;
+  margin-top: 20rpx;
+  text-decoration: underline;
+}
+
+.login-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20rpx;
+  color: #666;
+  font-size: 28rpx;
+}
+
+.loading-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #07c160;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.footer {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.copyright {
+  font-size: 24rpx;
+  color: #999;
+}
+</wxss>

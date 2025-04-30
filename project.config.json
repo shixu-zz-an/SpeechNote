@@ -29,7 +29,7 @@
     "minifyWXSS": true,
     "minifyWXML": true,
     "localPlugins": false,
-    "condition": false,
+    "condition": true,
     "swc": false,
     "disableSWC": true,
     "disableUseStrict": false,
@@ -38,7 +38,9 @@
     ]
   },
   "simulatorType": "wechat",
-  "simulatorPluginLibVersion": {},
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "3.6.5-29"
+  },
   "condition": {},
   "srcMiniprogramRoot": "miniprogram/",
   "editorSetting": {
@@ -50,5 +52,6 @@
     "ignore": [],
     "include": []
   },
-  "appid": "wxdecb40de743a3309"
+  "appid": "wxdecb40de743a3309",
+  "projectArchitecture": "multiPlatform"
 }
