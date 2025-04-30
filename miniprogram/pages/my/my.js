@@ -37,7 +37,7 @@ Page({
     };
 
     wx.request({
-      url: app.globalData.httpBaseUrl + '/user/vip/info',
+      url: app.globalData.httpBaseUrl + '/user/info',
       method: 'GET',
       header: header,
       success: (res) => {
@@ -78,16 +78,12 @@ Page({
     });
   },
 
-  // 跳转到词库管理
-  goToDictionary: function() {
-    wx.navigateTo({
-      url: '/pages/dictionary/dictionary'
-    });
-  },
-
-
-
-
+  // // 跳转到词库管理
+  // goToDictionary: function() {
+  //   wx.navigateTo({
+  //     url: '/pages/dictionary/dictionary'
+  //   });
+  // },
   // // 跳转到优惠券
   // goToCoupons: function() {
   //   wx.navigateTo({
