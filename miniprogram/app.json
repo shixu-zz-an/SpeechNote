@@ -6,7 +6,10 @@
     "pages/record-detail/record-detail",
     "pages/recording/recording",
     "pages/upload/upload",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/my/my",
+    "pages/purchase/purchase",
+    "pages/settings/settings"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -32,10 +35,10 @@
         "selectedIconPath": "assets/images/records-active.png"
       },
       {
-        "pagePath": "pages/schedule/schedule",
-        "text": "日程",
-        "iconPath": "assets/images/schedule.png",
-        "selectedIconPath": "assets/images/schedule-active.png"
+        "pagePath": "pages/my/my",
+        "text": "我的",
+        "iconPath": "assets/images/my.png",
+        "selectedIconPath": "assets/images/my-active.png"
       }
     ]
   },
