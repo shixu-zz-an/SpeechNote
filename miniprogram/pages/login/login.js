@@ -92,7 +92,7 @@ Page({
   serverLogin(code) {
     const app = getApp();
     wx.request({
-      url: 'http://192.168.0.100:8080/api/wx/login',
+      url: 'http://192.168.0.102:8080/api/wx/login',
       method: 'GET',
       data: { code },
       success: (res) => {

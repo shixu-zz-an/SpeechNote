@@ -1,0 +1,92 @@
+<!-- 用户信息区域 -->
+<view class="user-info">
+  <view class="user-header">
+    <image class="avatar" src="{{userInfo.avatarUrl || '/assets/images/default-avatar.png'}}" />
+    <view class="user-detail">
+      <text class="nickname">{{userInfo.nickname || 'AI_' + uid}}</text>
+      <view class="uid">UID: {{uid}}</view>
+    </view>
+    <view class="settings" bindtap="goToSettings">
+      <image src="/assets/images/settings.png" mode="aspectFit" />
+    </view>
+  </view>
+
+  <!-- VIP信息卡片 -->
+  <view class="vip-card" bindtap="goToVipPurchase">
+    <view class="vip-info">
+      <view class="vip-title">{{isVip ? 'VIP会员' : '未开通'}}</view>
+      <view class="vip-time">{{vipTime}}</view>
+    </view>
+    <view class="vip-stats">
+      <view class="stat-item">
+        <text class="stat-value">{{remainingTime || '0'}}分钟</text>
+        <text class="stat-label">剩余时长</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{remainingWords || '0'}}字</text>
+        <text class="stat-label">AI字数</text>
+      </view>
+    </view>
+    <view class="{{isVip ? 'recharge-btn' : 'upgrade-btn'}}">
+      {{isVip ? '立即续费' : '立即开通'}}
+    </view>
+  </view>
+</view>
+
+<!-- 功能列表 -->
+<view class="function-list">
+  <view class="function-item" bindtap="goToVipPurchase">
+    <image class="function-icon" src="/assets/images/vip.png" mode="aspectFit" />
+    <text class="function-name">我的套餐</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+  
+ 
+  <view class="function-item" bindtap="goToSchedule">
+    <image class="function-icon" src="/assets/images/schedule.png" mode="aspectFit" />
+    <text class="function-name">日程管理</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+</view>
+
+<!--
+<view class="function-list">
+  <view class="function-item" bindtap="goToVipPurchase">
+    <image class="function-icon" src="/assets/images/vip.png" mode="aspectFit" />
+    <text class="function-name">充值</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+  
+  <view class="function-item" bindtap="goToVipPurchase">
+    <image class="function-icon" src="/assets/images/crown.png" mode="aspectFit" />
+    <text class="function-name">升级VIP</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+
+  <view class="function-item" bindtap="goToDictionary">
+    <image class="function-icon" src="/assets/images/dictionary.png" mode="aspectFit" />
+    <text class="function-name">词库管理</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+
+
+  <view class="function-item" bindtap="goToCoupons">
+    <image class="function-icon" src="/assets/images/coupon.png" mode="aspectFit" />
+    <text class="function-name">优惠券</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+
+  <view class="function-item" bindtap="goToActivity">
+    <image class="function-icon" src="/assets/images/activity.png" mode="aspectFit" />
+    <text class="function-name">活动码兑换</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+
+  <view class="function-item" bindtap="goToHistory">
+    <image class="function-icon" src="/assets/images/history.png" mode="aspectFit" />
+    <text class="function-name">浏览记录</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+
+</view> 
+-->
