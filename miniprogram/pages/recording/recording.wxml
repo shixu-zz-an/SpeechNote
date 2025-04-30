@@ -1,17 +1,20 @@
 <view class="container">
   <!-- 顶部状态栏 -->
   <view class="header">
-    <view class="time-display">
+    <!-- <view class="time-display">
       <text class="current-time">{{currentTime}}</text>
       <text class="total-time">---{{formattedTime}}</text>
-    </view>
+    </view> -->
+    <view class="recording-info">
+    <text class="recording-title">{{recordingTitle}}</text>
+  </view>
     <view class="language-selector">中文</view>
   </view>
 
   <!-- 录音信息 -->
-  <view class="recording-info">
+  <!-- <view class="recording-info">
     <text class="recording-title">{{recordingTitle}}</text>
-  </view>
+  </view> -->
 
   <!-- 转录内容区域 -->
   <scroll-view scroll-y="true" class="transcription-area">
