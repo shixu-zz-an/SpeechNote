@@ -250,7 +250,7 @@
 /* 录音按钮 */
 .record-button {
   position: fixed;
-  bottom: 160rpx;
+  bottom: 50rpx;
   left: 50%;
   transform: translateX(-50%);
   width: 240rpx;
