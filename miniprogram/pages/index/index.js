@@ -89,7 +89,7 @@ Page({
   },
 
   // 加载最近会议记录
-  async loadRecentMeetings(pageSize = 5, pageNumber = 1) {
+  async loadRecentMeetings(pageSize = 5, pageNumber = 0) {
     try {
       wx.showLoading({
         title: '加载中...'

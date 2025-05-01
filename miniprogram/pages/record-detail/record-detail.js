@@ -11,7 +11,10 @@ Page({
     audioDuration: 0,
     currentPosition: 0,
     playbackRate: 1.0,
-    audioContext: null
+    audioContext: null,
+    isEditingTitle: false, // 是否正在编辑标题
+    editingTitle: '', // 编辑中的标题内容
+    lastClickTime: 0 // 用于检测双击
   },
 
   onLoad(options) {
@@ -328,6 +331,115 @@ Page({
     });
     
     this.setData({ audioContext });
+  },
+
+  // 处理标题点击事件（检测双击）
+  handleTitleClick(e) {
+    const currentTime = new Date().getTime();
+    // 检测是否是双击（两次点击间隔小于300ms）
+    if (currentTime - this.data.lastClickTime < 300) {
+      this.handleTitleEdit();
+    }
+    this.setData({
+      lastClickTime: currentTime
+    });
+  },
+
+  // 处理标题编辑
+  handleTitleEdit() {
+    this.setData({
+      isEditingTitle: true,
+      editingTitle: this.data.meeting.title
+    });
+  },
+
+  // 处理标题输入
+  handleTitleInput(e) {
+    this.setData({
+      editingTitle: e.detail.value
+    });
+  },
+
+  // 处理标题保存
+  handleTitleSave() {
+    // 如果标题没有变化，直接关闭编辑状态
+    if (this.data.editingTitle === this.data.meeting.title) {
+      this.setData({
+        isEditingTitle: false
+      });
+      return;
+    }
+
+    // 标题不能为空
+    if (!this.data.editingTitle.trim()) {
+      wx.showToast({
+        title: '标题不能为空',
+        icon: 'none'
+      });
+      // 恢复原标题
+      this.setData({
+        editingTitle: this.data.meeting.title,
+        isEditingTitle: false
+      });
+      return;
+    }
+
+    // 更新标题
+    this.updateMeetingTitle();
+  },
+
+  // 更新会议标题到后端
+  updateMeetingTitle() {
+    const { meeting, editingTitle } = this.data;
+    
+    wx.showLoading({
+      title: '保存中...'
+    });
+
+    app.request({
+      url: `/api/meetings/${meeting.id}`,
+      method: 'PATCH',
+      data: {
+        title: editingTitle
+      }
+    }).then(res => {
+      wx.hideLoading();
+      
+      if (res.success) {
+        // 更新本地数据
+        this.setData({
+          'meeting.title': editingTitle,
+          isEditingTitle: false
+        });
+        
+        wx.showToast({
+          title: '标题已更新',
+          icon: 'success'
+        });
+      } else {
+        wx.showToast({
+          title: res.message || '更新失败',
+          icon: 'none'
+        });
+        // 恢复原标题
+        this.setData({
+          isEditingTitle: false
+        });
+      }
+    }).catch(error => {
+      console.error('更新标题失败:', error);
+      wx.hideLoading();
+      
+      wx.showToast({
+        title: '更新失败',
+        icon: 'none'
+      });
+      
+      // 恢复原标题
+      this.setData({
+        isEditingTitle: false
+      });
+    });
   },
 
   // 切换标签页
