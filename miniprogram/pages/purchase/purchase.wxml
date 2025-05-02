@@ -1,112 +1,66 @@
-<!-- 顶部切换 -->
-<view class="tab-container">
-  <view class="tab {{currentTab === 'package' ? 'active' : ''}}" bindtap="switchTab" data-tab="package">
-    套餐购买
+<view class="container">
+  <!-- 标签切换 -->
+  <view class="tab-container">
+    <view class="tab {{currentTab === 'package' ? 'active' : ''}}" bindtap="switchTab" data-tab="package">套餐购买</view>
+    <view class="tab {{currentTab === 'single' ? 'active' : ''}}" bindtap="switchTab" data-tab="single">单次购买</view>
   </view>
-  <view class="tab {{currentTab === 'single' ? 'active' : ''}}" bindtap="switchTab" data-tab="single">
-    单独购买
-  </view>
-</view>
 
-<!-- 套餐购买 -->
-<view class="package-container" wx:if="{{currentTab === 'package'}}">
-  <view class="package-list">
-    <!-- 三天畅用卡 -->
-    <view class="package-item {{selectedPackage === '3days' ? 'selected' : ''}}" bindtap="selectPackage" data-package="3days">
-      <view class="package-title">三天畅用卡</view>
-      <view class="package-price">
-        <text class="price">¥29</text>
-        <text class="unit">/3天</text>
-        <text class="original-price">¥159</text>
+  <!-- 套餐购买 -->
+  <view class="content" wx:if="{{currentTab === 'package'}}">
+    <view class="plan-list">
+      <view class="plan-item {{selectedPackage === item.id ? 'selected' : ''}}" 
+            wx:for="{{plans}}" 
+            wx:key="id"
+            bindtap="selectPackage"
+            data-package="{{item.id}}">
+        <view class="plan-header">
+          <text class="plan-name">{{item.name}}</text>
+          <text class="plan-recommend" wx:if="{{item.recommendReason}}">{{item.recommendReason}}</text>
+        </view>
+        <view class="plan-desc">{{item.description}}</view>
+        <view class="plan-price">
+          <text class="current-price">¥{{item.price}}</text>
+          <text class="original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+        </view>
+        <view class="plan-duration">
+          <text>有效期：{{item.validityDays}}天</text>
+          <text wx:if="{{item.usageAmount}}">可用时长：{{item.usageAmount}}小时</text>
+        </view>
       </view>
-      <view class="package-features">
-        <view class="feature">100小时语音转写</view>
-        <view class="feature">100万AI字数</view>
-      </view>
-      <view class="package-tag">紧急使用必选!</view>
-    </view>
-
-    <!-- 月卡VIP -->
-    <view class="package-item {{selectedPackage === 'month' ? 'selected' : ''}}" bindtap="selectPackage" data-package="month">
-      <view class="package-title">月卡 VIP</view>
-      <view class="package-price">
-        <text class="price">¥29</text>
-        <text class="unit">/1个月</text>
-        <text class="original-price">¥79</text>
-      </view>
-      <view class="package-features">
-        <view class="feature">10h/时语音转写</view>
-        <view class="feature">10万AI字数</view>
-      </view>
-      <view class="package-tag recommend">推荐</view>
-    </view>
-
-    <!-- 季卡VIP -->
-    <view class="package-item {{selectedPackage === 'season' ? 'selected' : ''}}" bindtap="selectPackage" data-package="season">
-      <view class="package-title">3个月 VIP</view>
-      <view class="package-price">
-        <text class="price">¥69</text>
-        <text class="unit">/3个月</text>
-        <text class="original-price">¥238</text>
-      </view>
-      <view class="package-features">
-        <view class="feature">30h转写/每月10h</view>
-        <view class="feature">30w字/每月10w字</view>
-      </view>
-      <view class="package-tag">月卡77折</view>
-    </view>
-
-    <!-- 年卡VIP -->
-    <view class="package-item {{selectedPackage === 'year' ? 'selected' : ''}}" bindtap="selectPackage" data-package="year">
-      <view class="package-title">1年+2个月VIP</view>
-      <view class="package-price">
-        <text class="price">¥99</text>
-        <text class="unit">/14个月</text>
-        <text class="original-price">¥1116</text>
-      </view>
-      <view class="package-features">
-        <view class="feature">140h转写/每月10h</view>
-        <view class="feature">140万字/每月10万字</view>
-      </view>
-      <view class="package-tag special">历史最低价</view>
     </view>
   </view>
-</view>
 
-<!-- 单独购买 -->
-<view class="single-container" wx:if="{{currentTab === 'single'}}">
-  <view class="single-title">转写时长</view>
-  <view class="single-list">
-    <view class="single-item {{selectedSingle === '10h' ? 'selected' : ''}}" bindtap="selectSingle" data-type="10h">
-      <view class="time">10小时</view>
-      <view class="price">¥29</view>
-    </view>
-    <view class="single-item {{selectedSingle === '30h' ? 'selected' : ''}}" bindtap="selectSingle" data-type="30h">
-      <view class="time">30小时</view>
-      <view class="price">¥69</view>
-    </view>
-    <view class="single-item {{selectedSingle === '100h' ? 'selected' : ''}}" bindtap="selectSingle" data-type="100h">
-      <view class="time">100小时</view>
-      <view class="price">¥199</view>
+  <!-- 单次购买 -->
+  <view class="content" wx:if="{{currentTab === 'single'}}">
+    <view class="plan-list">
+      <view class="plan-item {{selectedSingle === item.id ? 'selected' : ''}}" 
+            wx:for="{{plans}}" 
+            wx:key="id"
+            bindtap="selectSingle"
+            data-type="{{item.id}}">
+        <view class="plan-header">
+          <text class="plan-name">{{item.name}}</text>
+          <text class="plan-recommend" wx:if="{{item.recommendReason}}">{{item.recommendReason}}</text>
+        </view>
+        <view class="plan-desc">{{item.description}}</view>
+        <view class="plan-price">
+          <text class="current-price">¥{{item.price}}</text>
+          <text class="original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+        </view>
+        <view class="plan-duration">
+          <text>可用时长：{{item.usageAmount}}小时</text>
+          <text>有效期：{{item.validityDays}}天</text>
+        </view>
+      </view>
     </view>
   </view>
-</view>
 
-<!-- 优惠券 
-<view class="coupon-container">
-  <view class="coupon-text">使用优惠券</view>
-  <view class="get-coupon" bindtap="getCoupon">领取10元立减券 ></view>
-</view>
--->
-
-<!-- 总计 -->
-<view class="total-container">
-  <text>总计</text>
-  <text class="total-price">¥{{totalPrice}}</text>
-</view>
-
-<!-- 底部按钮 -->
-<view class="bottom-button">
-  <button class="purchase-btn" bindtap="purchase">立即购买</button>
-  <view class="agreement">购买即视为同意《付费服务协议》</view>
+  <!-- 底部购买按钮 -->
+  <view class="footer">
+    <view class="total-price">
+      <text>总计：</text>
+      <text class="price">¥{{totalPrice}}</text>
+    </view>
+    <button class="purchase-btn" bindtap="purchase">立即购买</button>
+  </view>
 </view> 
