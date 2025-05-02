@@ -9,7 +9,10 @@
     "pages/login/login",
     "pages/my/my",
     "pages/purchase/purchase",
-    "pages/settings/settings"
+    "pages/settings/settings",
+    "pages/feedback/feedback",
+    "pages/feedback/feedback-list/feedback-list",
+    "pages/feedback/feedback-detail/feedback-detail"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -21,6 +24,8 @@
     "color": "#999999",
     "selectedColor": "#1890ff",
     "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "height": "20px",
     "list": [
       {
         "pagePath": "pages/index/index",

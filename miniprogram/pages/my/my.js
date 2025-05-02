@@ -78,7 +78,14 @@ Page({
     });
   },
 
-  // // 跳转到词库管理
+  // 跳转到意见反馈页面
+  goToFeedback: function() {
+    wx.navigateTo({
+      url: '/pages/feedback/feedback'
+    });
+  },
+
+  // 跳转到词库管理
   // goToDictionary: function() {
   //   wx.navigateTo({
   //     url: '/pages/dictionary/dictionary'

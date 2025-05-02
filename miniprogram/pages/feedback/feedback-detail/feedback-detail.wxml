@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="feedback-card">
+    <view class="feedback-header">
+      <text class="feedback-title">{{feedback.title}}</text>
+      <text class="feedback-status {{feedback.status === '已回复' ? 'replied' : 'pending'}}">{{feedback.status}}</text>
+    </view>
+    
+    <view class="feedback-info">
+      <view class="info-item">
+        <text class="info-label">反馈类型：</text>
+        <text class="info-value">{{feedback.feedbackType}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">提交时间：</text>
+        <text class="info-value">{{feedback.createdAt}}</text>
+      </view>
+    </view>
+    
+    <view class="content-section">
+      <text class="section-title">问题描述</text>
+      <view class="content-box">
+        <text>{{feedback.content}}</text>
+      </view>
+    </view>
+    
+    <view class="content-section" wx:if="{{feedback.adminReply}}">
+      <text class="section-title">官方回复</text>
+      <view class="content-box reply">
+        <text>{{feedback.adminReply}}</text>
+        <view class="reply-time">回复时间：{{feedback.repliedAt}}</view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="action-bar">
+    <button class="action-btn" bindtap="goToFeedbackList">返回列表</button>
+    <button class="action-btn primary" bindtap="goToNewFeedback">新建反馈</button>
+  </view>
+</view>

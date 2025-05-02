@@ -49,6 +49,12 @@
     <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
   </view>
   
+  <view class="function-item" bindtap="goToFeedback">
+    <image class="function-icon" src="/assets/images/feedback.png" mode="aspectFit" />
+    <text class="function-name">意见反馈</text>
+    <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+  </view>
+  
  <!--
   <view class="function-item" bindtap="goToSchedule">
     <image class="function-icon" src="/assets/images/schedule.png" mode="aspectFit" />

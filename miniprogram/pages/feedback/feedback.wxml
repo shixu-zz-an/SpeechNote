@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="header">
+    <text class="title">意见反馈</text>
+    <view class="history-btn" bindtap="goToFeedbackList">
+      <text>反馈历史</text>
+    </view>
+  </view>
+
+  <view class="form-container">
+    <view class="form-item">
+      <text class="label">反馈类型</text>
+      <view class="type-selector">
+        <view 
+          wx:for="{{feedbackTypes}}" 
+          wx:key="index" 
+          class="type-item {{selectedType === item ? 'selected' : ''}}"
+          bindtap="selectType"
+          data-type="{{item}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">标题</text>
+      <input class="input" placeholder="请输入反馈标题" value="{{title}}" bindinput="onTitleInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">内容描述</text>
+      <textarea class="textarea" placeholder="请详细描述您的问题或建议..." value="{{content}}" bindinput="onContentInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">联系方式 (选填)</text>
+      <input class="input" placeholder="手机号/微信/邮箱" value="{{contactInfo}}" bindinput="onContactInput" />
+    </view>
+
+    <button class="submit-btn {{isFormValid ? '' : 'disabled'}}" bindtap="submitFeedback" disabled="{{!isFormValid}}">提交反馈</button>
+  </view>
+</view>
