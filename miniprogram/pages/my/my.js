@@ -33,21 +33,21 @@ Page({
   refreshVipInfo: function() {
     const header = {
       'content-type': 'application/json',
-      'Authorization': 'Bearer ' + wx.getStorageSync('token')
+      'Authorization': wx.getStorageSync('token')
     };
 
     wx.request({
-      url: app.globalData.httpBaseUrl + '/user/info',
+      url: app.globalData.baseUrl + '/api/user/info',
       method: 'GET',
       header: header,
       success: (res) => {
-        if (res.data && res.data.code === 0) {
-          const vipInfo = res.data.data;
+        if (res.data ) {
+          const userInfo = res.data;
           this.setData({
-            isVip: vipInfo.isVip,
-            vipTime: vipInfo.isVip ? vipInfo.expireTime : '未开通',
-            remainingTime: vipInfo.remainingTime || 0,
-            remainingWords: vipInfo.remainingWords || 0
+            isVip: userInfo.hasBuy?userInfo.hasBuy:false,
+           // vipTime: userInfo.hasBuy ? userInfo.expireTime : '未开通',
+            remainingTime: userInfo.remainingAmount || 0,
+            usageTime: userInfo.usageAmount || 0
           });
         }
       },

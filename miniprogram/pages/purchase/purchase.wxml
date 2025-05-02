@@ -92,11 +92,12 @@
   </view>
 </view>
 
-<!-- 优惠券 -->
+<!-- 优惠券 
 <view class="coupon-container">
   <view class="coupon-text">使用优惠券</view>
   <view class="get-coupon" bindtap="getCoupon">领取10元立减券 ></view>
 </view>
+-->
 
 <!-- 总计 -->
 <view class="total-container">
