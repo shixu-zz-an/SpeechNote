@@ -15,7 +15,19 @@
 
   <!-- Recording Info -->
   <view class="recording-info">
-    <view class="recording-title">{{meeting.title}}</view>
+    <!-- Editable title with double-click functionality -->
+    <view class="recording-title-container">
+      <view class="recording-title" wx:if="{{!isEditingTitle}}" bindtap="handleTitleClick" bindlongtap="handleTitleEdit">{{meeting.title}}</view>
+      <input 
+        class="recording-title-input" 
+        wx:if="{{isEditingTitle}}" 
+        value="{{editingTitle}}" 
+        focus="{{isEditingTitle}}" 
+        bindinput="handleTitleInput" 
+        bindblur="handleTitleSave"
+        bindconfirm="handleTitleSave"
+      />
+    </view>
     <view class="recording-meta">
       <text class="date">{{meeting.date}} {{meeting.time}}</text>
       <text class="duration">{{meeting.duration}}</text>

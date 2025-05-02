@@ -64,11 +64,43 @@
   margin-bottom: 2rpx;
 }
 
+.recording-title-container {
+  margin-bottom: 10rpx;
+}
+
 .recording-title {
   font-size: 34rpx;
   font-weight: 500;
-  margin-bottom: 10rpx;
   color: #333;
+  padding: 6rpx 0;
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.recording-title:active {
+  background-color: rgba(62, 123, 250, 0.1);
+  border-radius: 4rpx;
+}
+
+.recording-title::after {
+  content: "\270E"; /* 编辑图标 Unicode */
+  font-size: 28rpx;
+  color: #999;
+  margin-left: 10rpx;
+  opacity: 0.6;
+}
+
+.recording-title-input {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #333;
+  padding: 6rpx 10rpx;
+  border-bottom: 2rpx solid #3E7BFA;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: rgba(62, 123, 250, 0.05);
+  border-radius: 4rpx;
 }
 
 .recording-meta {
