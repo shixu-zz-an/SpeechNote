@@ -8,7 +8,12 @@ Page({
     isWechatPlatform: true, // 
     phoneNumber: '', // 
     showPhoneInput: false, // 
-    phoneNumberValid: false // 
+    phoneNumberValid: false, // 
+    isMultiPlatformApp: false, // 
+    verificationCode: '', // 
+    verificationCodeValid: false, // 
+    countDown: 0, // 
+    countDownTimer: null // 
   },
 
   onLoad() {
@@ -23,38 +28,58 @@ Page({
     this.checkPlatform();
   },
 
+  onUnload() {
+    // 
+    if (this.data.countDownTimer) {
+      clearInterval(this.data.countDownTimer);
+    }
+  },
+
   // 
   checkPlatform() {
-    // 
-    if (typeof wx !== 'undefined' && wx.getSystemInfoSync) {
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      console.log('', systemInfo);
+      
+      // 
       try {
-        const systemInfo = wx.getSystemInfoSync();
+        wx.login({
+          success: () => {
+            // wx.login
+            this.setData({
+              isWechatPlatform: true,
+              showPhoneInput: false,
+              isMultiPlatformApp: false
+            });
+            console.log('');
+          },
+          fail: (err) => {
+            // wx.login
+            console.log('wx.login', err);
+            this.setData({
+              isWechatPlatform: false,
+              showPhoneInput: true,
+              isMultiPlatformApp: true
+            });
+            console.log('');
+          }
+        });
+      } catch (loginErr) {
+        console.error('wx.login', loginErr);
         // 
-        if (systemInfo.platform && (systemInfo.platform === 'ios' || systemInfo.platform === 'android') && systemInfo.environment === 'wxmp') {
-          this.setData({ 
-            isWechatPlatform: true,
-            showPhoneInput: false
-          });
-        } else {
-          // 
-          this.setData({ 
-            isWechatPlatform: false,
-            showPhoneInput: true
-          });
-        }
-      } catch (e) {
-        // 
-        console.error('', e);
-        this.setData({ 
+        this.setData({
           isWechatPlatform: false,
-          showPhoneInput: true
+          showPhoneInput: true,
+          isMultiPlatformApp: true
         });
       }
-    } else {
-      // wx 
-      this.setData({ 
+    } catch (err) {
+      console.error('', err);
+      // 
+      this.setData({
         isWechatPlatform: false,
-        showPhoneInput: true
+        showPhoneInput: true,
+        isMultiPlatformApp: true
       });
     }
   },
@@ -66,32 +91,20 @@ Page({
     this.setData({ isLoggingIn: true });
     
     // 
-    if (!this.data.isWechatPlatform) {
-      this.nonWechatLogin();
-      return;
+    if (this.data.isMultiPlatformApp) {
+      // 
+      this.setData({
+        showPhoneInput: true,
+        isLoggingIn: false
+      });
+      wx.showToast({
+        title: '',
+        icon: 'none'
+      });
+    } else {
+      // 
+      this.wxLogin();
     }
-    
-    // 
-    wx.showModal({
-      title: '',
-      content: '',
-      confirmText: '',
-      cancelText: '',
-      success: (res) => {
-        if (res.confirm) {
-          // 
-          this.getUserProfileInfo();
-        } else {
-          // 
-          console.log('');
-          this.setData({ isLoggingIn: false });
-          this.wxLogin();
-        }
-      },
-      fail: () => {
-        this.setData({ isLoggingIn: false });
-      }
-    });
   },
 
   // 
@@ -172,33 +185,80 @@ Page({
 
   // 
   wxLogin() {
+    // 
+    if (this.data.isMultiPlatformApp) {
+      this.setData({ 
+        isLoggingIn: false,
+        showPhoneInput: true
+      });
+      return;
+    }
+    
     wx.showLoading({
       title: '',
     });
 
-    wx.login({
-      success: (res) => {
-        if (res.code) {
-          // 
-          this.serverLogin(res.code);
-        } else {
-          this.setData({ isLoggingIn: false });
+    try {
+      wx.login({
+        success: (res) => {
+          if (res.code) {
+            console.log('wx.login success, code:', res.code);
+            // 
+            this.serverLogin(res.code);
+          } else {
+            console.error('wx.login fail', res);
+            this.setData({ isLoggingIn: false });
+            wx.hideLoading();
+            wx.showToast({
+              title: '',
+              icon: 'none'
+            });
+          }
+        },
+        fail: (err) => {
+          console.error('wx.login fail', err);
           wx.hideLoading();
-          wx.showToast({
-            title: '',
-            icon: 'none'
-          });
+          
+          // 
+          if (err.errMsg && err.errMsg.includes('')) {
+            console.log('');
+            this.setData({
+              isMultiPlatformApp: true,
+              isWechatPlatform: false,
+              showPhoneInput: true,
+              isLoggingIn: false
+            });
+            
+            wx.showToast({
+              title: '',
+              icon: 'none'
+            });
+          } else {
+            this.setData({ isLoggingIn: false });
+            wx.showToast({
+              title: '',
+              icon: 'none'
+            });
+          }
         }
-      },
-      fail: () => {
-        this.setData({ isLoggingIn: false });
-        wx.hideLoading();
-        wx.showToast({
-          title: '',
-          icon: 'none'
-        });
-      }
-    });
+      });
+    } catch (err) {
+      console.error('wx.login', err);
+      wx.hideLoading();
+      
+      // 
+      this.setData({
+        isMultiPlatformApp: true,
+        isWechatPlatform: false,
+        showPhoneInput: true,
+        isLoggingIn: false
+      });
+      
+      wx.showToast({
+        title: '',
+        icon: 'none'
+      });
+    }
   },
 
   // 
@@ -379,18 +439,205 @@ Page({
   // 
   phoneNumberInput(e) {
     const phoneNumber = e.detail.value;
-    const phoneNumberValid = this.validatePhoneNumber(phoneNumber);
+    const isValid = this.validatePhoneNumber(phoneNumber);
     
     this.setData({
       phoneNumber: phoneNumber,
-      phoneNumberValid: phoneNumberValid
+      phoneNumberValid: isValid
+    });
+  },
+  
+  // 
+  verificationCodeInput(e) {
+    const code = e.detail.value;
+    const isValid = this.validateVerificationCode(code);
+    
+    this.setData({
+      verificationCode: code,
+      verificationCodeValid: isValid
     });
   },
   
   // 
   validatePhoneNumber(phoneNumber) {
     // 
-    const phoneRegex = /^1[3-9]\d{9}$/;
+    const phoneRegex = /^1\d{10}$/;
     return phoneRegex.test(phoneNumber);
+  },
+  
+  // 
+  validateVerificationCode(code) {
+    // 
+    const codeRegex = /^\d{6}$/;
+    return codeRegex.test(code);
+  },
+  
+  // 
+  getVerificationCode() {
+    if (!this.data.phoneNumberValid) {
+      wx.showToast({
+        title: '',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 
+    if (this.data.countDown > 0) return;
+    
+    wx.showLoading({ title: '' });
+    
+    // 
+    const app = getApp();
+    wx.request({
+      url: `${app.globalData.baseUrl}/api/login/sendVerificationCode`,
+      method: 'POST',
+      data: {
+        phone: this.data.phoneNumber
+      },
+      success: (res) => {
+        wx.hideLoading();
+        
+        if (res.statusCode === 200) {
+          wx.showToast({
+            title: '',
+            icon: 'success'
+          });
+          
+          // 
+          this.startCountDown();
+        } else {
+          wx.showToast({
+            title: res.data.message || '',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('', err);
+        wx.hideLoading();
+        wx.showToast({
+          title: '',
+          icon: 'none'
+        });
+      }
+    });
+  },
+  
+  // 
+  startCountDown() {
+    // 
+    this.setData({ countDown: 60 });
+    
+    // 
+    if (this.data.countDownTimer) {
+      clearInterval(this.data.countDownTimer);
+    }
+    
+    // 
+    const timer = setInterval(() => {
+      if (this.data.countDown <= 1) {
+        // 
+        clearInterval(timer);
+        this.setData({ 
+          countDown: 0,
+          countDownTimer: null
+        });
+      } else {
+        // 
+        this.setData({ countDown: this.data.countDown - 1 });
+      }
+    }, 1000);
+    
+    // 
+    this.setData({ countDownTimer: timer });
+  },
+  
+  // 
+  phoneLogin() {
+    if (!this.data.phoneNumberValid || !this.data.verificationCodeValid) {
+      wx.showToast({
+        title: '',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    this.setData({ isLoggingIn: true });
+    wx.showLoading({ title: '' });
+    
+    // 
+    const app = getApp();
+    wx.request({
+      url: `${app.globalData.baseUrl}/api/login/phoneLogin`,
+      method: 'GET',
+      data: {
+        phone: this.data.phoneNumber,
+        verificationCode: this.data.verificationCode
+      },
+      success: (res) => {
+        console.log('login success', res);
+        wx.hideLoading();
+        
+        // 
+        if (res.statusCode === 200) {
+          let token = '';
+          
+          // 
+          if (res.data && res.data.token) {
+            // 
+            token = res.data.token;
+          } else if (res.data && res.data.data && res.data.data.jwtToken) {
+            // 
+            token = res.data.data.jwtToken;
+            
+            // 
+            if (res.data.data.uid) {
+              wx.setStorageSync('uid', res.data.data.uid);
+            }
+          }
+          
+          if (token) {
+            // 
+            app.globalData.token = token;
+            app.globalData.isLogin = true;
+            wx.setStorageSync('token', token);
+            
+            console.log('token saved:', token);
+            
+            // 
+            const pages = getCurrentPages();
+            if (pages.length > 1) {
+              wx.navigateBack();
+            } else {
+              wx.reLaunch({
+                url: '/pages/index/index'
+              });
+            }
+          } else {
+            this.setData({ isLoggingIn: false });
+            wx.showToast({
+              title: '',
+              icon: 'none'
+            });
+          }
+        } else {
+          this.setData({ isLoggingIn: false });
+          wx.showToast({
+            title: res.data && res.data.message ? res.data.message : '',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('login fail', err);
+        this.setData({ isLoggingIn: false });
+        wx.hideLoading();
+        wx.showToast({
+          title: '',
+          icon: 'none'
+        });
+      }
+    });
   }
 });

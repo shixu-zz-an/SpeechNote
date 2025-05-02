@@ -2,43 +2,48 @@
   "miniVersion": "v2",
   "name": "智能会议",
   "version": "0.0.1",
-  "versionCode": 100,
+  "versionCode": 101,
   "i18nFilePath": "i18n",
   "mini-android": {
     "resourcePath": "miniapp/android/nativeResources",
     "sdkVersion": "1.6.9",
     "toolkitVersion": "0.11.0",
     "useExtendedSdk": {
-      "media": false,
-      "bluetooth": false,
-      "network": false,
+      "media": true,
+      "bluetooth": true,
+      "network": true,
       "scanner": false,
       "xweb": false
     },
     "icons": {
-      "hdpi": "",
-      "xhdpi": "",
-      "xxhdpi": "",
-      "xxxhdpi": ""
+      "hdpi": "miniapp/android/nativeResources/icons/icon_72.png",
+      "xhdpi": "miniapp/android/nativeResources/icons/icon_96.png",
+      "xxhdpi": "miniapp/android/nativeResources/icons/icon_144.png",
+      "xxxhdpi": "miniapp/android/nativeResources/icons/icon_192.png"
     },
     "splashscreen": {
-      "hdpi": "",
-      "xhdpi": "",
-      "xxhdpi": ""
+      "hdpi": "miniapp/android/nativeResources/splash/splash_480x800.png",
+      "xhdpi": "miniapp/android/nativeResources/splash/splash_720x1280.png",
+      "xxhdpi": "miniapp/android/nativeResources/splash/splash_1080x1920.png"
     },
     "enableVConsole": "open",
     "privacy": {
       "enable": true
-    }
+    },
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.RECORD_AUDIO"
+    ]
   },
   "mini-ios": {
     "sdkVersion": "1.6.10",
     "toolkitVersion": "0.0.9",
     "useExtendedSdk": {
       "WeAppOpenFuns": true,
-      "WeAppNetwork": false,
+      "WeAppNetwork": true,
       "WeAppBluetooth": false,
-      "WeAppMedia": false,
+      "WeAppMedia": true,
       "WeAppLBS": false,
       "WeAppOthers": false
     },
@@ -58,13 +63,13 @@
       "customImage": ""
     },
     "privacy": {
-      "enable": false
+      "enable": true
     },
     "enableOpenUrlNavigate": true,
     "privateDescriptions": {
-      "NSPhotoLibraryUsageDescription": "当前应用程序需要访问用户的相册，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
-      "NSCameraUsageDescription": "当前应用程序需要访问用户的相机，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
-      "NSMicrophoneUsageDescription": "当前应用程序需要访问用户的麦克风，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
+      "NSPhotoLibraryUsageDescription": "需要访问相册以便上传图片",
+      "NSCameraUsageDescription": "需要访问相机以便拍摄照片",
+      "NSMicrophoneUsageDescription": "需要访问麦克风以便录制会议内容",
       "NSLocationWhenInUseUsageDescription": "当前应用程序需要在使用时访问用户的位置，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
       "NSLocationAlwaysUsageDescription": "当前应用程序需要始终访问用户的位置，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
       "NSLocationAlwaysAndWhenInUseUsageDescription": "当前应用程序需要始终和在使用时访问用户的位置，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
@@ -73,10 +78,10 @@
       "NSRemindersUsageDescription": "当前应用程序需要访问用户的提醒事项，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
       "NSBluetoothPeripheralUsageDescription": "当前应用程序需要访问用户的蓝牙，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
       "NSBluetoothAlwaysUsageDescription": "当前应用程序需要始终访问用户的蓝牙，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
-      "NSSpeechRecognitionUsageDescription": "当前应用程序需要使用语音识别，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
+      "NSSpeechRecognitionUsageDescription": "需要使用语音识别功能以便转录会议内容",
       "NSLocalNetworkUsageDescription": "当前应用程序需要访问本地网络，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
       "NSSystemAdministrationUsageDescription": "当前应用程序需要进行系统管理操作，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可」",
-      "NSPhotoLibraryAddUsageDescription": "应用程序在请求访问照片库，如需修改描述请前往「project.miniapp.json - 隐私信息访问许可描述」修改，并且关闭「自动使用默认描述补全默认隐私信息访问许可"
+      "NSPhotoLibraryAddUsageDescription": "需要访问照片库以保存图片"
     },
     "buildCloud": {
       "useRemote": false
