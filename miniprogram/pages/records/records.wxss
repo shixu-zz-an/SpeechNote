@@ -78,69 +78,6 @@
   margin: 24rpx 0;
 }
 
-.meeting-item {
-  background-color: #fff;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  margin-bottom: 24rpx;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.meeting-item:active {
-  transform: translateY(-2rpx);
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
-}
-
-.meeting-title {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8rpx;
-}
-
-.play-button {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background-color: #e6f4ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 24rpx;
-}
-
-.play-button .iconfont {
-  font-size: 32rpx;
-  color: #1677ff;
-}
-
-.meeting-name {
-  font-size: 30rpx;
-  color: #333;
-  flex: 1;
-}
-
-.meeting-info {
-  display: flex;
-  align-items: center;
-  margin-left: 88rpx;
-  color: #999;
-  font-size: 26rpx;
-}
-
-.meeting-time,
-.meeting-duration {
-  display: flex;
-  align-items: center;
-  margin-right: 32rpx;
-}
-
-.info-icon {
-  font-size: 32rpx;
-  margin-right: 8rpx;
-}
-
 /* 可滑动删除的列表项样式 */
 .sliding-item-container {
   width: 100%;
@@ -164,6 +101,57 @@
   width: 100%;
   background-color: #fff;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.meeting-item:active {
+  background-color: #f8f8f8;
+}
+
+.meeting-icon {
+  width: 90rpx;
+  height: 90rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+  background-color: #f5f7fa;
+  border-radius: 50%;
+}
+
+.list-icon-image {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.meeting-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.meeting-name {
+  font-size: 32rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meeting-info {
+  display: flex;
+  font-size: 26rpx;
+  color: #999;
+  line-height: 1.4;
+}
+
+.meeting-time, .meeting-duration {
+  margin-right: 20rpx;
 }
 
 .delete-btn {

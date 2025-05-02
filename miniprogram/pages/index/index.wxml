@@ -1,8 +1,9 @@
 <view class="page-container">
-  <!-- 固定部分：广告轮播区域和功能卡片 -->
-  <view class="fixed-section">
+
+  <!-- 主内容区域 -->
+  <view class="main-content">
     <!-- 广告轮播区域 -->
-    <view class="page-section">
+    <view class="banner-container">
       <swiper class="banner-swiper" 
               indicator-dots="{{true}}"
               autoplay="{{true}}"
@@ -17,76 +18,72 @@
 
     <!-- 功能卡片区域 -->
     <view class="feature-grid">
-      <view class="feature-card" bindtap="navigateTo" data-path="/pages/recording/recording">
-        <view class="feature-icon blue">
-          <text class="iconfont icon-mic"></text>
+      <view class="feature-card-container">
+        <view class="feature-card" bindtap="navigateTo" data-path="/pages/recording/recording">
+          <view class="feature-icon blue">
+            <image src="/assets/images/2.png" mode="aspectFit" class="feature-icon-image"></image>
+          </view>
+          <view class="feature-text">
+            <view class="feature-title">实时录音</view>
+            <view class="feature-desc">实时转写 | 会议纪要</view>
+          </view>
         </view>
-        <view class="feature-text">
-          <view class="feature-title">实时录音</view>
-          <view class="feature-desc">实时转写 | 会议纪要 AI 总结</view>
-        </view>
-      </view>
 
-      <view class="feature-card" bindtap="navigateTo" data-path="/pages/upload/upload">
-        <view class="feature-icon purple">
-          <text class="iconfont icon-upload"></text>
-        </view>
-        <view class="feature-text">
-          <view class="feature-title">上传文件</view>
-          <view class="feature-desc">支持音频文件上传转写</view>
+        <view class="feature-card" bindtap="navigateTo" data-path="/pages/upload/upload">
+          <view class="feature-icon purple">
+            <image src="/assets/images/3.png" mode="aspectFit" class="feature-icon-image"></image>
+          </view>
+          <view class="feature-text">
+            <view class="feature-title">上传文件</view>
+            <view class="feature-desc">支持音频文件上传</view>
+          </view>
         </view>
       </view>
     </view>
-  </view>
 
-  <!-- 可滚动部分：最近会议列表 -->
-  <view class="meeting-list-container">
-    <view class="meeting-header">
-      <view class="meeting-date">最近会议</view>
-      <view class="view-all" bindtap="navigateToRecords">查看全部</view>
-    </view>
-    
-    <scroll-view 
-      class="scrollable-meeting-list"
-      scroll-y="{{true}}" 
-      refresher-enabled="{{true}}"
-      refresher-threshold="{{80}}"
-      refresher-default-style="black"
-      refresher-background="#f2f2f2"
-      refresher-triggered="{{isRefreshing}}"
-      bindrefresherrefresh="onPullDownRefresh">
+    <!-- 最近会议列表 -->
+    <view class="meeting-section">
+      <view class="meeting-header">
+        <view class="meeting-title">最近会议</view>
+        <view class="view-all" bindtap="navigateToRecords">查看全部</view>
+      </view>
       
-      <view class="meeting-list">
-        <view class="meeting-item" 
-              wx:for="{{recentMeetings}}" 
-              wx:key="id"
-              bindtap="navigateToDetail"
-              data-id="{{item.id}}">
-          <view class="meeting-title">
-            <view class="play-button">
-              <text class="iconfont icon-play"></text>
-            </view>
-            <text class="meeting-name">{{item.title}}</text>
-          </view>
-          <view class="meeting-info">
-            <view class="meeting-time">
-              <text class="iconfont icon-time info-icon"></text>
-              <text>{{item.time}}</text>
-            </view>
-            <view class="meeting-duration">
-              <text class="iconfont icon-duration info-icon"></text>
-              <text>{{item.duration}}</text>
-            </view>
-            <text>{{item.source}}</text>
-          </view>
-        </view>
+      <scroll-view 
+        class="meeting-list-scroll"
+        scroll-y="{{true}}" 
+        refresher-enabled="{{true}}"
+        refresher-threshold="{{80}}"
+        refresher-default-style="black"
+        refresher-background="#f8f8f8"
+        refresher-triggered="{{isRefreshing}}"
+        bindrefresherrefresh="onPullDownRefresh">
         
-        <!-- 无数据提示 -->
-        <view class="empty-list" wx:if="{{recentMeetings.length === 0}}">
-          <text>暂无会议记录</text>
+        <view class="meeting-list">
+          <view class="meeting-item" 
+                wx:for="{{recentMeetings}}" 
+                wx:key="id"
+                bindtap="navigateToDetail"
+                data-id="{{item.id}}">
+            <view class="meeting-icon">
+              <image src="/assets/images/indexList.png" mode="aspectFit" class="list-icon-image"></image>
+            </view>
+            <view class="meeting-content">
+              <view class="meeting-name">{{item.title}}</view>
+              <view class="meeting-info">
+                <text class="meeting-time">{{item.time}}</text>
+                <text class="meeting-duration">{{item.duration}}</text>
+                <text class="meeting-source">{{item.source}}</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 无数据提示 -->
+          <view class="empty-list" wx:if="{{recentMeetings.length === 0}}">
+            <text>暂无会议记录</text>
+          </view>
         </view>
-      </view>
-    </scroll-view>
+      </scroll-view>
+    </view>
   </view>
 
   <!-- 底部录音按钮 -->

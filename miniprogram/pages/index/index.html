@@ -1,0 +1,130 @@
+// 代码已包含 CSS：使用 TailwindCSS , 安装 TailwindCSS 后方可看到布局样式效果
+import React from 'react';
+import { Button } from 'antd';
+import { AudioOutlined, FileOutlined, HomeOutlined, ProfileOutlined, UserOutlined } from '@ant-design/icons';
+const App: React.FC = () => {
+return (
+<div className="relative w-[375px] min-h-[762px] bg-white">
+{/* Status Bar */}
+<div className="fixed top-0 w-full bg-white z-50 px-4 py-2 flex justify-between items-center">
+<span className="text-sm">14:13</span>
+<div className="flex items-center gap-2">
+<span className="text-sm">100%</span>
+<i className="fas fa-battery-full"></i>
+</div>
+</div>
+{/* Navigation Bar */}
+<div className="fixed top-8 w-full bg-blue-500 text-white z-40 px-4 py-3 flex justify-between items-center shadow-md">
+<h1 className="text-lg font-medium text-center flex-1">会议记录助手</h1>
+<div className="flex items-center gap-4">
+<i className="fas fa-ellipsis-h opacity-80"></i>
+<i className="fas fa-camera opacity-80"></i>
+</div>
+</div>
+{/* Main Content */}
+<div className="pt-24 pb-16">
+{/* Banner Image */}
+<div className="px-4 mb-6">
+<div className="rounded-lg overflow-hidden">
+<img
+src="https://ai-public.mastergo.com/ai/img_res/ccc142a6e44b546cae9f8b8d59d798eb.jpg"
+alt="Meeting Scene"
+className="w-full h-48 object-cover"
+/>
+</div>
+</div>
+{/* Feature Cards */}
+<div className="px-4 grid grid-cols-2 gap-4 mb-6">
+<button className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center !rounded-button">
+<div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2">
+<AudioOutlined className="text-xl text-white" />
+</div>
+<span className="text-base font-medium">实时录音</span>
+<span className="text-xs text-gray-500">实时转写 | 会议纪要</span>
+</button>
+<button className="bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center !rounded-button">
+<div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mb-2">
+<FileOutlined className="text-xl text-white" />
+</div>
+<span className="text-base font-medium">上传文件</span>
+<span className="text-xs text-gray-500">支持音频文件上传</span>
+</button>
+</div>
+{/* Recent Meetings */}
+<div className="px-4">
+<div className="flex justify-between items-center mb-4">
+<h2 className="text-base font-medium">最近会议</h2>
+<a href="#" className="text-blue-500 text-sm">查看全部</a>
+</div>
+<div className="space-y-4">
+{[
+{
+title: '2025-05-01 18:19:58录音',
+time: '05-01 18:19',
+duration: '00:00',
+source: '小程序'
+},
+{
+title: '会议修改测试',
+time: '04-30 17:47',
+duration: '00:00',
+source: '未知'
+},
+{
+title: '2025-04-24 23:12:12录音',
+time: '04-24 23:12',
+duration: '00:00',
+source: '小程序'
+},
+{
+title: '声音波形处理反馈1111',
+time: '04-24 15:30',
+duration: '00:00',
+source: '小程序'
+}
+].map((meeting, index) => (
+<div key={index} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow duration-300 flex items-center">
+<div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+<i className="fas fa-microphone text-gray-400"></i>
+</div>
+<div className="flex-1">
+<h3 className="text-sm font-medium mb-1">{meeting.title}</h3>
+<div className="flex items-center text-xs text-gray-500">
+<span>{meeting.time}</span>
+<span className="mx-2">{meeting.duration}</span>
+<span>{meeting.source}</span>
+</div>
+</div>
+</div>
+))}
+</div>
+</div>
+{/* Record Button */}
+<div className="fixed bottom-20 left-1/2 transform -translate-x-1/2">
+<Button type="primary" className="!rounded-button h-14 px-10 text-base font-medium flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#1890ff' }}>
+<i className="fas fa-microphone mr-2"></i>
+开始录音
+</Button>
+</div>
+{/* Bottom Navigation */}
+<div className="fixed bottom-0 w-full bg-white border-t">
+<div className="grid grid-cols-3 h-16">
+<button className="flex flex-col items-center justify-center text-blue-500 transition-colors duration-300">
+<HomeOutlined className="text-xl mb-1" />
+<span className="text-xs">首页</span>
+</button>
+<button className="flex flex-col items-center justify-center text-gray-400">
+<ProfileOutlined className="text-xl mb-1" />
+<span className="text-xs">记录</span>
+</button>
+<button className="flex flex-col items-center justify-center text-gray-400">
+<UserOutlined className="text-xl mb-1" />
+<span className="text-xs">我的</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+);
+};
+export default App

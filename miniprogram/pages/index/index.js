@@ -211,6 +211,13 @@ Page({
       url: '/pages/records/records'
     });
   },
+  
+  // u8df3u8f6cu5230u6211u7684u9875u9762
+  navigateToMine() {
+    wx.switchTab({
+      url: '/pages/mine/mine'
+    });
+  },
 
   // u70b9u51fbu8f6eu64adu56fe
   onBannerTap(e) {
