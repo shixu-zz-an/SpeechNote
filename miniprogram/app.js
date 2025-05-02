@@ -1,8 +1,8 @@
 App({
   globalData: {
     userInfo: null,
-    baseUrl: 'http://192.168.0.101:8082', // 修改为实际的API地址
-    wsUrl:'ws://192.168.0.101:8082',
+    baseUrl: 'http://192.168.0.102:8080', // 修改为实际的API地址
+    wsUrl:'ws://192.168.0.102:8080',
     token: '',
     isLogin: false,
     needRefreshMeetings: false,
