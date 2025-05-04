@@ -16,19 +16,23 @@
   <!-- VIP信息卡片 -->
   <view class="vip-card" bindtap="goToVipPurchase">
     <view class="vip-info">
-      <view class="vip-title">{{isVip ? 'VIP会员' : '未开通'}}</view>
-      <!--
-      <view class="vip-time">{{vipTime}}</view>
-      -->
+      <view class="vip-title">
+        <text class="vip-icon">VIP</text>
+        <text>{{isVip ? '会员' : '未开通'}}</text>
+      </view>
+      <view class="vip-action">
+        <text>{{isVip ? '续费' : '开通'}}</text>
+        <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+      </view>
     </view>
     <view class="vip-stats">
       <view class="stat-item">
-        <text class="stat-value">{{usageTime || '0'}}分钟</text>
-        <text class="stat-label">总时长</text>
+        <text class="stat-value">{{usageTime || '0'}}</text>
+        <text class="stat-label">总时长(分钟)</text>
       </view>
       <view class="stat-item">
-        <text class="stat-value">{{remainingTime || '0'}}分钟</text>
-        <text class="stat-label">剩余时长</text>
+        <text class="stat-value">{{remainingTime || '0'}}</text>
+        <text class="stat-label">剩余时长(分钟)</text>
       </view>
       <!--
       <view class="stat-item">
@@ -36,9 +40,6 @@
         <text class="stat-label">AI字数</text>
       </view>
       -->
-    </view>
-    <view class="{{isVip ? 'recharge-btn' : 'upgrade-btn'}}">
-      {{isVip ? '立即续费' : '立即开通'}}
     </view>
   </view>
 </view>

@@ -1,7 +1,14 @@
+/* 页面容器 */
+page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
 /* 用户信息区域 */
 .user-info {
-  padding: 30rpx 20rpx;
-  background: #ffffff;
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  padding: 30rpx;
+  color: #fff;
 }
 
 .user-header {
@@ -13,9 +20,9 @@
 .avatar {
   width: 120rpx;
   height: 120rpx;
-  border-radius: 60rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
   margin-right: 20rpx;
-  border: 2rpx solid #eee;
 }
 
 .user-detail {
@@ -23,100 +30,97 @@
 }
 
 .nickname {
-  font-size: 34rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 10rpx;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+  display: block;
 }
 
 .uid {
-  font-size: 26rpx;
-  color: #999;
-}
-
-.settings {
-  padding: 10rpx;
-}
-
-.settings image {
-  width: 40rpx;
-  height: 40rpx;
-  opacity: 0.7;
+  font-size: 24rpx;
+  opacity: 0.8;
 }
 
 /* VIP卡片 */
 .vip-card {
-  background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 16rpx;
-  padding: 30rpx;
-  color: #fff;
-  margin: 0 20rpx;
-  position: relative;
-  overflow: hidden;
+  padding: 24rpx;
+  margin-top: 20rpx;
 }
 
 .vip-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40rpx;
+  margin-bottom: 20rpx;
 }
 
 .vip-title {
+  display: flex;
+  align-items: center;
   font-size: 32rpx;
   font-weight: bold;
 }
 
-.vip-time {
+.vip-icon {
+  background: #ffd700;
+  color: #000;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  margin-right: 12rpx;
   font-size: 24rpx;
-  opacity: 0.8;
+}
+
+.vip-action {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+}
+
+.arrow {
+  width: 32rpx;
+  height: 32rpx;
+  margin-left: 8rpx;
 }
 
 .vip-stats {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 30rpx;
+  justify-content: space-around;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  padding: 20rpx 0;
 }
 
 .stat-item {
-  text-align: left;
-  flex: 1;
+  text-align: center;
 }
 
 .stat-value {
   font-size: 36rpx;
-  font-weight: 500;
+  font-weight: bold;
   display: block;
   margin-bottom: 8rpx;
-  color: #fff;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.upgrade-btn, .recharge-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 30rpx;
-  text-align: center;
-  padding: 16rpx 0;
-  font-size: 28rpx;
-  margin-top: 20rpx;
+  opacity: 0.8;
 }
 
 /* 功能列表 */
 .function-list {
-  margin-top: 20rpx;
+  margin: 20rpx;
   background: #fff;
-  padding: 0 20rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
 }
 
 .function-item {
   display: flex;
   align-items: center;
-  padding: 30rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .function-item:last-child {
@@ -124,20 +128,41 @@
 }
 
 .function-icon {
-  width: 44rpx;
-  height: 44rpx;
+  width: 48rpx;
+  height: 48rpx;
   margin-right: 20rpx;
 }
 
 .function-name {
   flex: 1;
-  font-size: 30rpx;
+  font-size: 32rpx;
   color: #333;
-  font-weight: 400;
 }
 
-.arrow {
-  width: 32rpx;
-  height: 32rpx;
-  opacity: 0.3;
+/* 按钮样式 */
+button {
+  margin: 40rpx 30rpx;
+  background: #4a90e2;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 32rpx;
+  padding: 20rpx 0;
+}
+
+button::after {
+  border: none;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-left: 20rpx;
 } 
