@@ -1,0 +1,19 @@
+<view class="container">
+  <view class="subscription-list">
+    <block wx:for="{{orders}}" wx:key="id">
+      <view class="subscription-item">
+        <view class="order-info">
+          <view class="plan-name">{{item.planName}}</view>
+          <view class="order-time">下单时间：{{item.createTime}}</view>
+          <view class="order-status">状态：{{item.statusText}}</view>
+          <view class="order-amount">金额：{{item.amount}}元</view>
+        </view>
+        <view class="order-actions" wx:if="{{item.status === 'UNPAID'}}">
+          <button class="action-btn cancel" bindtap="cancelOrder" data-order-id="{{item.id}}">取消订单</button>
+          <button class="action-btn repay" bindtap="repayOrder" data-order-id="{{item.id}}">重新支付</button>
+          <button class="action-btn close" bindtap="closeOrder" data-order-id="{{item.id}}">关闭订单</button>
+        </view>
+      </view>
+    </block>
+  </view>
+</view> 

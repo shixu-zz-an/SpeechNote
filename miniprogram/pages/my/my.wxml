@@ -6,9 +6,11 @@
       <text class="nickname">{{userInfo.nickname || 'AI_' + uid}}</text>
       <view class="uid">UID: {{uid}}</view>
     </view>
+    <!-- 
     <view class="settings" bindtap="goToSettings">
       <image src="/assets/images/settings.png" mode="aspectFit" />
     </view>
+    -->
   </view>
 
   <!-- VIP信息卡片 -->
@@ -43,9 +45,9 @@
 
 <!-- 功能列表 -->
 <view class="function-list">
-  <view class="function-item" bindtap="goToVipPurchase">
+  <view class="function-item" bindtap="goToMySubscription">
     <image class="function-icon" src="/assets/images/vip.png" mode="aspectFit" />
-    <text class="function-name">我的套餐</text>
+    <text class="function-name">我的订阅</text>
     <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
   </view>
   

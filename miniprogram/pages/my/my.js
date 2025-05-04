@@ -103,5 +103,11 @@ Page({
   //   wx.navigateTo({
   //     url: '/pages/history/history'
   //   });
-  // }
+  // },
+
+  goToMySubscription() {
+    wx.navigateTo({
+      url: '/pages/mysubscription/mysubscription'
+    })
+  },
 }); 

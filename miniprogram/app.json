@@ -9,7 +9,8 @@
     "pages/login/login",
     "pages/my/my",
     "pages/purchase/purchase",
-    "pages/settings/settings"
+    "pages/settings/settings",
+    "pages/mysubscription/mysubscription"
   ],
   "window": {
     "backgroundTextStyle": "light",

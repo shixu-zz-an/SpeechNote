@@ -20,14 +20,14 @@ Page({
   // 获取计划列表
   fetchPlans: function(planTypes) {
     wx.request({
-      url: app.globalData.httpBaseUrl + '/api/subscription/plans',
+      url: app.globalData.baseUrl + '/api/subscription/plans',
       method: 'GET',
       data: {
-        planTypes: planTypes
+        planTypes: planTypes.join(',') // 将数组转换为逗号分隔的字符串
       },
       header: {
         'content-type': 'application/json',
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        'Authorization': wx.getStorageSync('token')
       },
       success: (res) => {
         if (res.data) {
@@ -115,18 +115,16 @@ Page({
 
     // 调用支付接口
     wx.request({
-      url: app.globalData.httpBaseUrl + '/api/order/create',
+      url: app.globalData.baseUrl + '/api/subscription/order/create',
       method: 'POST',
       data: {
-        type: this.data.currentTab,
-        package: selectedType,
         amount: this.data.totalPrice,
         planId: this.data.itemId,
         deviceType:1
       },
       header: {
         'content-type': 'application/json',
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        'Authorization': wx.getStorageSync('token')
       },
       success: (res) => {
         if (res.data ) {
