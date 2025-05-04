@@ -1,0 +1,45 @@
+<view class="container">
+  <view class="header">
+    <text class="title">反馈历史</text>
+    <view class="new-btn" bindtap="goToNewFeedback">
+      <text>新建反馈</text>
+    </view>
+  </view>
+
+  <!-- 无数据提示 -->
+  <view class="empty-container" wx:if="{{feedbackList.length === 0}}">
+    <image class="empty-image" src="/assets/images/empty-data.png" mode="aspectFit"></image>
+    <text class="empty-text">暂无反馈记录</text>
+    <button class="create-btn" bindtap="goToNewFeedback">创建反馈</button>
+  </view>
+
+  <!-- 反馈列表 -->
+  <view class="feedback-list" wx:else>
+    <view 
+      class="feedback-item" 
+      wx:for="{{feedbackList}}" 
+      wx:key="id"
+      bindtap="goToFeedbackDetail"
+      data-id="{{item.id}}">
+      <view class="feedback-header">
+        <text class="feedback-title">{{item.title}}</text>
+        <text class="feedback-status {{item.status === '已回复' ? 'replied' : 'pending'}}">{{item.status}}</text>
+      </view>
+      <view class="feedback-content">{{item.content}}</view>
+      <view class="feedback-footer">
+        <text class="feedback-type">{{item.feedbackType}}</text>
+        <text class="feedback-time">{{item.createdAt}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{feedbackList.length > 0 && hasMoreData}}">
+    <text wx:if="{{isLoading}}">加载中...</text>
+    <text wx:else bindtap="loadMoreFeedback">点击加载更多</text>
+  </view>
+
+  <view class="load-more" wx:if="{{feedbackList.length > 0 && !hasMoreData}}">
+    <text>没有更多数据了</text>
+  </view>
+</view>
