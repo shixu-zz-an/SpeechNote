@@ -43,6 +43,7 @@
       "WeAppOpenFuns": true,
       "WeAppNetwork": true,
       "WeAppBluetooth": false,
+      "WeAppAudio": true,
       "WeAppLBS": false,
       "WeAppOthers": false
     },
