@@ -379,24 +379,49 @@ Page({
   },
 
   // 取消录音
-  handleCancel() {
-    wx.showModal({
-      title: '确认取消',
-      content: '确定要取消本次录音吗？',
-      success: (res) => {
-        if (res.confirm) {
-          this.stopRecording();
-          this.closeWebSocket();
-          wx.navigateBack();
+  onCancel() {
+    if (this.data.isRecording) {
+      wx.showModal({
+        title: '确认取消',
+        content: '确定要取消本次录音吗？录音内容将不会被保存。',
+        success: (res) => {
+          if (res.confirm) {
+            this.stopRecording();
+            this.closeWebSocket();
+            wx.navigateBack();
+          }
         }
-      }
-    });
+      });
+    } else {
+      wx.navigateBack();
+    }
   },
 
   // 完成录音
-  handleComplete() {
-    this.setData({ needSave: true });
-    this.stopRecording();
+  onComplete() {
+    if (!this.data.isRecording) {
+      wx.showToast({
+        title: '请先开始录音',
+        icon: 'none'
+      });
+      return;
+    }
+
+    wx.showModal({
+      title: '确认完成',
+      content: '确定要结束本次录音吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({ needSave: true });
+          this.stopRecording();
+          
+          // 等待最后的数据处理完成
+          setTimeout(() => {
+            this.handleSave();
+          }, 1000);
+        }
+      }
+    });
   },
 
   // 保存录音
