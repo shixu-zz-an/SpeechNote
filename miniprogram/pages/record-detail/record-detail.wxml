@@ -90,7 +90,7 @@
         </block>
       </view>
       <view class="ai-input-area">
-        <input class="ai-input" placeholder="输入问题，AI帮你解答" confirm-type="send" bindconfirm="sendToAI" value="{{aiInput}}"></input>
+        <input class="ai-input" placeholder="输入问题，AI帮你解答" confirm-type="send" bindconfirm="sendToAI" bindinput="onAIInputChange" value="{{aiInput}}"></input>
         <view class="ai-send-btn" bindtap="sendToAI">
           <text class="iconfont icon-send"></text>
         </view>

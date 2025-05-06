@@ -513,9 +513,19 @@ Page({
 
   // 向AI发送问题
   sendToAI(e) {
-    const query = e.detail.value || this.data.aiInput;
+    // 获取输入内容，兼容button点击和键盘提交两种方式
+    let query = this.data.aiInput;
     
-    if (!query.trim()) {
+    if (e && e.detail && e.detail.value) {
+      query = e.detail.value;
+    }
+    
+    if (!query || !query.trim()) {
+      wx.showToast({
+        title: '请输入问题',
+        icon: 'none',
+        duration: 1500
+      });
       return;
     }
     
@@ -541,11 +551,11 @@ Page({
     
     // 调用后端AI接口
     app.request({
-      url: '/api/ai/chat',
-      method: 'POST',
+      url: '/api/chat/context',
+      method: 'GET',
       data: {
         meetingId: this.data.meeting.id,
-        query: query
+        message: query
       }
     }).then(res => {
       wx.hideLoading();
@@ -744,5 +754,12 @@ Page({
       path: '/pages/record-detail/record-detail?id=' + this.data.meeting.id,
       imageUrl: '/assets/images/share_image.png'
     };
-  }
+  },
+  
+  // 处理AI输入变化
+  onAIInputChange(e) {
+    this.setData({
+      aiInput: e.detail.value
+    });
+  },
 });
