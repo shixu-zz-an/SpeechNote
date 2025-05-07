@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background-color: #F5F7FA;
 }
 
 /* 顶部状态栏样式 */
@@ -10,50 +11,48 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 30rpx;
-  border-bottom: 1rpx solid #eee;
-  height: 80rpx;
+  background-color: #FFF;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.time-display {
+.recording-status {
   display: flex;
   align-items: center;
 }
 
-.current-time {
-  font-size: 32rpx;
-  color: #333;
-  font-weight: 500;
+.recording-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: #FF4D4F;
+  margin-right: 10rpx;
+  animation: pulse 1s infinite;
 }
 
-.total-time {
-  font-size: 28rpx;
-  color: #999;
-  margin-left: 4rpx;
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 .language-selector {
-  padding: 4rpx 16rpx;
-  border-radius: 16rpx;
-  font-size: 24rpx;
-  color: #666;
+  font-size: 28rpx;
+  color: #333;
 }
 
 /* 录音信息样式 */
 .recording-info {
-  padding: 20rpx 30rpx;
-}
-
-.date-time {
-  font-size: 24rpx;
-  color: #999;
-  margin-bottom: 8rpx;
-  display: block;
+  flex: 1;
+  margin: 0 20rpx;
 }
 
 .recording-title {
   font-size: 28rpx;
   color: #333;
   display: block;
+  text-align: center;
 }
 
 /* 转录内容区域样式 */
@@ -65,6 +64,10 @@
 
 .transcript-item {
   margin-bottom: 30rpx;
+  background: #FFF;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .transcript-item.interim {
@@ -73,9 +76,8 @@
 
 .transcript-time {
   font-size: 28rpx;
-  color: #8B8B8B;
+  color: #3E7BFA;
   margin-bottom: 8rpx;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .transcript-text {
@@ -83,7 +85,6 @@
   color: #333;
   line-height: 1.5;
   word-wrap: break-word;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .empty-transcript {
@@ -109,17 +110,19 @@
 .recording-tip {
   padding: 20rpx;
   text-align: center;
+  background-color: #FFF7E6;
 }
 
 .recording-tip text {
   font-size: 24rpx;
-  color: #666;
+  color: #FA8C16;
 }
 
 /* 波形动画样式 */
 .waveform-container {
   padding: 30rpx;
-  border-top: 1rpx solid #eee;
+  background-color: #FFF;
+  margin: 20rpx 0;
 }
 
 .waveform-time {
@@ -140,15 +143,42 @@
 
 .waveform-bar {
   width: 4rpx;
-  background: #007AFF;
+  background: #3E7BFA;
   border-radius: 2rpx;
   transition: height 0.1s ease;
+}
+
+/* 录音进度样式 */
+.time-progress {
+  padding: 20rpx 30rpx;
+  background-color: #FFF;
+}
+
+.progress-bar {
+  height: 6rpx;
+  background-color: #E1E4E8;
+  border-radius: 3rpx;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+}
+
+.progress-line {
+  height: 100%;
+  background-color: #3E7BFA;
+  transition: width 0.3s ease;
+}
+
+.time-display {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
 }
 
 /* 底部控制栏样式 */
 .footer {
   padding: 30rpx;
-  border-top: 1rpx solid #eee;
+  background-color: #FFF;
+  border-top: 1rpx solid #EEE;
 }
 
 .controls {
@@ -168,22 +198,24 @@
 }
 
 .complete {
-  color: #007AFF;
+  color: #3E7BFA;
 }
 
 .record-btn {
   width: 120rpx;
   height: 120rpx;
   border-radius: 60rpx;
-  background: #007AFF;
+  background: #3E7BFA;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 8rpx rgba(0, 122, 255, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(62, 123, 250, 0.3);
+  transition: all 0.3s ease;
 }
 
 .record-btn.recording {
-  background: #FF3B30;
+  background: #FF4D4F;
+  transform: scale(0.95);
 }
 
 .record-icon {
@@ -191,4 +223,37 @@
   height: 40rpx;
   background: #fff;
   border-radius: 8rpx;
+  position: relative;
+}
+
+.record-icon.play {
+  width: 0;
+  height: 0;
+  background: transparent;
+  border-style: solid;
+  border-width: 20rpx 0 20rpx 30rpx;
+  border-color: transparent transparent transparent #FFFFFF;
+  margin-left: 10rpx;
+}
+
+.record-icon.pause {
+  background: transparent;
+}
+
+.record-icon.pause:before,
+.record-icon.pause:after {
+  content: "";
+  position: absolute;
+  width: 14rpx;
+  height: 40rpx;
+  background-color: #FFFFFF;
+  border-radius: 4rpx;
+}
+
+.record-icon.pause:before {
+  left: 8rpx;
+}
+
+.record-icon.pause:after {
+  right: 8rpx;
 }

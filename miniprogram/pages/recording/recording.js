@@ -35,7 +35,40 @@ Page({
     audioBuffer: new Int16Array(),  // 用于存储音频数据
     recordingTitle: '',
     waveformData: Array(30).fill(5),
-    needSave: true
+    needSave: true,
+    currentLanguage: '中文',
+    maxDuration: '10:00',
+    progressPercent: 0
+  },
+
+  // 格式化时间显示
+  formatTranscriptTime(seconds) {
+    if (typeof seconds !== 'number') return '00:00';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    } else {
+      return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+  },
+
+  // 格式化时间戳
+  formatTime(date) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  },
+
+  // 格式化日期
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   onLoad() {
@@ -58,14 +91,14 @@ Page({
     // 启动波形动画
     this.startWaveformAnimation();
     
-    // 先初始化WebSocket
-    this.initWebSocket();
+    // 初始化WebSocket并开始录音
+    this.initAndStartRecording();
   },
 
   onUnload() {
     this.stopRecording();
-    this.clearTimer();
-    this.clearWaveformAnimation();
+    this.stopTimer();
+    this.stopWaveformAnimation();
     this.closeWebSocket();
   },
 
@@ -88,6 +121,17 @@ Page({
       wx.onSocketOpen(() => {
         console.log('WebSocket连接已打开');
         this.setData({ socketStatus: 'connected' });
+        
+        // 发送初始化消息
+        this.sendWebSocketMessage({
+          command: 'START_RECORDING',
+          config: {
+            sampleRate: AUDIO_CONFIG.sampleRate,
+            channels: AUDIO_CONFIG.numberOfChannels,
+            frameSize: AUDIO_CONFIG.frameSize
+          }
+        });
+        
         resolve();
       });
 
@@ -110,19 +154,7 @@ Page({
       });
     });
   },
-  // 辅助函数
-  formatDate: function(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  },
-  
-  formatTime: function(date) {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-  },
+
   // 将Float32Array转换为Int16Array
   float32ToInt16(float32Array) {
     const int16Array = new Int16Array(float32Array.length);
@@ -161,12 +193,20 @@ Page({
   // 处理并发送音频数据块
   processAudioChunks(newAudioData) {
     try {
+      // 只有在录音状态下才处理音频数据
+      if (!this.data.isRecording) {
+        console.log('当前未在录音状态，跳过音频处理');
+        return;
+      }
+
       // 获取当前帧的Int16Array数据
       const frameData = new Int16Array(newAudioData.frameBuffer);
-      // console.log('当前帧数据长度:', frameData.length);
+      console.log('收到音频帧数据，长度:', frameData.length);
+      
+      // 更新波形数据
+      this.updateWaveform(frameData);
       
       let audioBuffer = this.data.audioBuffer || new Int16Array(0);
-      // console.log('当前缓冲区长度:', audioBuffer.length);
       
       // 创建新的缓冲区并合并数据
       const newBuffer = new Int16Array(audioBuffer.length + frameData.length);
@@ -174,27 +214,26 @@ Page({
         newBuffer.set(audioBuffer, 0);
       }
       newBuffer.set(frameData, audioBuffer.length);
-      
-      // console.log('合并后的缓冲区长度:', newBuffer.length);
 
-      // 当缓冲区累积到1024字节或更多时发送数据
+      // 当缓冲区累积到足够大小时发送数据
       if (newBuffer.length >= 1920) {
-        // 截取1024字节发送
+        // 截取数据发送
         const sendData = newBuffer.slice(0, 1920);
         
         if (this.data.socketStatus === 'connected') {
-          console.log('发送数据长度:', sendData.length);
+          console.log('发送音频数据，大小:', sendData.length);
           this.sendWebSocketMessage(sendData.buffer);
+        } else {
+          console.log('WebSocket未连接，无法发送音频数据');
         }
 
         // 保存剩余的数据到缓冲区
         const remainingBuffer = newBuffer.slice(1920);
-        console.log('剩余数据长度:', remainingBuffer.length);
         this.setData({
           audioBuffer: remainingBuffer
         });
       } else {
-        // 如果数据不足1024字节，保存到缓冲区
+        // 如果数据不足，保存到缓冲区
         this.setData({
           audioBuffer: newBuffer
         });
@@ -249,7 +288,7 @@ Page({
       recorderManager.onStop(() => {
         console.log('录音结束');
         this.setData({ isRecording: false });
-        this.clearTimer();
+        this.stopTimer();
         
         // 发送剩余的音频数据
         if (this.data.audioBuffer.length > 0) {
@@ -300,9 +339,6 @@ Page({
       // 开始计时
       this.startTimer();
 
-      // 开始录音
-      this.recorderManager.start(AUDIO_CONFIG);
-
       // 开始波形动画
       this.startWaveformAnimation();
 
@@ -317,31 +353,133 @@ Page({
 
   // 停止录音
   stopRecording() {
-    if (!this.data.isRecording) return;
+    if (!this.recorderManager || !this.data.isRecording) return;
 
-    // 更新状态
-    this.setData({
-      isRecording: false
-    });
+    try {
+      this.recorderManager.stop();
+      this.stopTimer();
+      this.setData({
+        isRecording: false
+      });
 
-    // 停止计时
-    this.clearTimer();
-
-    // 停止录音
-    this.recorderManager.stop();
-
-    // 停止波形动画
-    this.stopWaveformAnimation();
+      // 发送停止信号到服务器
+      // if (this.data.socketStatus === 'connected') {
+      //   this.sendWebSocketMessage({
+      //     command: 'STOP_RECORDING',
+      //     recordingId: this.data.recordingId
+      //   });
+      // }
+    } catch (error) {
+      console.error('停止录音失败:', error);
+    }
   },
 
   // 切换录音状态
-  toggleRecording() {
-    const { isRecording } = this.data;
-    
-    if (isRecording) {
-      this.stopRecording();
+  async toggleRecording() {
+    if (this.data.isRecording) {
+      this.pauseRecording();
     } else {
-      this.startRecording();
+      await this.resumeRecording();
+    }
+  },
+
+  // 暂停录音
+  pauseRecording() {
+    if (!this.recorderManager || !this.data.isRecording) return;
+
+    try {
+      // 暂停录音管理器
+      this.recorderManager.pause();
+      
+      // 暂停计时器
+      this.pauseTimer();
+      
+      // 更新状态
+      this.setData({
+        isRecording: false
+      });
+
+      // 发送暂停信号到服务器，但保持WebSocket连接
+      // if (this.data.socketStatus === 'connected') {
+      //   this.sendWebSocketMessage({
+      //     command: 'PAUSE_RECORDING',
+      //     recordingId: this.data.recordingId
+      //   });
+      // }
+
+      // 停止波形动画
+      this.stopWaveformAnimation();
+
+      wx.showToast({
+        title: '录音已暂停',
+        icon: 'none'
+      });
+    } catch (error) {
+      console.error('暂停录音失败:', error);
+      wx.showToast({
+        title: '暂停录音失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  // 恢复录音
+  async resumeRecording() {
+    if (!this.recorderManager || this.data.isRecording) return;
+
+    try {
+      // 确保WebSocket连接
+      if (this.data.socketStatus !== 'connected') {
+        await this.initWebSocket();
+      }
+
+      // 恢复录音管理器
+      this.recorderManager.resume();
+      
+      // 恢复计时器
+      this.resumeTimer();
+      
+      // 更新状态
+      this.setData({
+        isRecording: true
+      });
+
+      // 发送恢复信号到服务器
+      // if (this.data.socketStatus === 'connected') {
+      //   this.sendWebSocketMessage({
+      //     command: 'RESUME_RECORDING',
+      //     recordingId: this.data.recordingId
+      //   });
+      // }
+
+      // 恢复波形动画
+      this.startWaveformAnimation();
+
+      wx.showToast({
+        title: '录音已恢复',
+        icon: 'none'
+      });
+    } catch (error) {
+      console.error('恢复录音失败:', error);
+      wx.showToast({
+        title: '恢复录音失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  // 暂停计时器
+  pauseTimer() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
+
+  // 恢复计时器
+  resumeTimer() {
+    if (!this.timer) {
+      this.startTimer();
     }
   },
 
@@ -350,70 +488,65 @@ Page({
     // 重置录音时间
     this.setData({ 
       recordingTime: 0,
-      formattedTime: '0:00'
+      formattedTime: '00:00'
     });
 
     this.timer = setInterval(() => {
       const newTime = this.data.recordingTime + 1;
+      const formattedTime = this.formatDuration(newTime);
+      
       this.setData({
         recordingTime: newTime,
-        formattedTime: this.formatTranscriptTime(newTime)
+        formattedTime: formattedTime
       });
+      this.updateProgress();
     }, 1000);
   },
 
-  // 清除计时器
-  clearTimer() {
+  // 停止计时器
+  stopTimer() {
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
     }
   },
 
-  // 格式化时间戳
-  formatTranscriptTime(seconds) {
-    if (typeof seconds !== 'number') return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${String(secs).padStart(2, '0')}`;
-  },
-
   // 取消录音
   onCancel() {
-    if (this.data.isRecording) {
-      wx.showModal({
-        title: '确认取消',
-        content: '确定要取消本次录音吗？录音内容将不会被保存。',
-        success: (res) => {
-          if (res.confirm) {
-            this.stopRecording();
-            this.closeWebSocket();
-            wx.navigateBack();
+    wx.showModal({
+      title: '确认取消',
+      content: '确定要取消本次录音吗？录音内容将不会被保存。',
+      success: (res) => {
+        if (res.confirm) {
+          if (this.data.socketStatus === 'connected') {
+            console.log("cancel data ====",this.data)
+            this.sendWebSocketMessage({
+              command: 'CANCEL_RECORDING',
+              recordId: this.data.recordingId
+            });
           }
+          this.stopRecording();
+          this.closeWebSocket(false);
+          wx.navigateBack();
         }
-      });
-    } else {
-      wx.navigateBack();
-    }
+      }
+    });
   },
 
   // 完成录音
   onComplete() {
-    if (!this.data.isRecording) {
-      wx.showToast({
-        title: '请先开始录音',
-        icon: 'none'
-      });
-      return;
-    }
-
+    // 移除录音状态检查，允许在暂停状态下完成
     wx.showModal({
       title: '确认完成',
       content: '确定要结束本次录音吗？',
       success: (res) => {
         if (res.confirm) {
           this.setData({ needSave: true });
-          this.stopRecording();
+          
+          // 如果正在录音，先停止录音
+          if (this.data.isRecording) {
+            this.stopRecording();
+          }
           
           // 等待最后的数据处理完成
           setTimeout(() => {
@@ -441,7 +574,7 @@ Page({
       id: recordingId,
       title: recordingTitle,
       time: this.data.formattedDate.split(' ')[1],
-      duration: this.formatTranscriptTime(recordingTime),
+      duration: this.formatDuration(recordingTime),
       source: '小程序',
       content: transcripts
     };
@@ -486,14 +619,48 @@ Page({
     );
   },
 
+  // 更新波形显示
+  updateWaveform(frameData) {
+    try {
+      // 计算音量强度（使用音频数据的平均绝对值）
+      let sum = 0;
+      const len = frameData.length;
+      
+      // 取样计算平均振幅
+      for (let i = 0; i < len; i += 10) {
+        sum += Math.abs(frameData[i]);
+      }
+      
+      const avgAmplitude = sum / (len / 10);
+      
+      // 将振幅转换为显示高度（2-80范围内）
+      const normalizedHeight = Math.max(2, Math.min(80, (avgAmplitude / 32767) * 100));
+      
+      // 生成波形数据
+      const waveformData = [...this.data.waveformData];
+      waveformData.shift();
+      waveformData.push(normalizedHeight);
+      
+      this.setData({
+        waveformData: waveformData
+      });
+    } catch (error) {
+      console.error('更新波形显示失败:', error);
+    }
+  },
+
   // 开始波形动画
   startWaveformAnimation() {
     // 立即更新一次
-    this.setData({ waveformData: this.generateWaveformData() });
+    this.setData({ waveformData: Array(30).fill(5) });
     
     // 设置定时器持续更新
     this.waveformTimer = setInterval(() => {
-      this.setData({ waveformData: this.generateWaveformData() });
+      // 生成随机波形数据
+      const waveformData = Array(30).fill(0).map(() => 
+        Math.floor(Math.random() * 20 + 30)
+      );
+      this.setData({ waveformData });
     }, 100);
   },
 
@@ -552,8 +719,19 @@ Page({
   },
 
   // 关闭WebSocket连接
-  closeWebSocket() {
+  closeWebSocket(isNeedSendStop=true) {
     try {
+      // 发送停止录音命令
+      if (this.data.socketStatus === 'connected') {
+        if(isNeedSendStop){
+            this.sendWebSocketMessage({
+              command: 'STOP_RECORDING',
+              recordId: this.data.recordingId
+            });
+        }
+      }
+
+      // 关闭WebSocket连接
       wx.closeSocket({
         code: 1000,
         reason: 'User closed the recording'
@@ -585,99 +763,106 @@ Page({
   },
 
   handleWebSocketMessage(res) {
-   
-      console.log('WebSocket消息已接收',res.data);
+    try {
+      const data = JSON.parse(res.data);
       
-      try {
-        const data = JSON.parse(res.data);
-    
-        // 处理服务器返回的消息
-        switch (data.type) {
-          case 'START_RECORDING':
-            // 服务器返回录音ID和初始化状态
-            this.setData({
-              recordingId: data.recordId
-            });
-            break;
-          
-          case 'TRANSCRIPTION':
-            // 处理转写结果
-            this.handleTranscription(data);
-            break;
-          
-          case 'error':
-            // 处理错误
-            console.error('服务器错误:', data.message);
-            wx.showToast({
-              title: '服务器错误: ' + data.message,
-              icon: 'none'
-            });
-            break;
-        }
-      } catch (error) {
-        console.error('解析WebSocket消息失败:', error);
+      // 处理服务器返回的消息
+      switch (data.type) {
+        case 'START_RECORDING':
+          // 服务器返回录音ID和初始化状态
+          this.setData({
+            recordingId: data.recordId
+          });
+          console.log("handle data ====",this.data)
+          break;
+        
+        case 'TRANSCRIPTION':
+          // 处理转写结果
+          this.handleTranscription(data);
+          break;
+        
+        case 'error':
+          // 处理错误
+          console.error('服务器错误:', data.message);
+          wx.showToast({
+            title: '服务器错误: ' + data.message,
+            icon: 'none'
+          });
+          break;
       }
-   
+    } catch (error) {
+      console.error('解析WebSocket消息失败:', error);
+    }
   },
 
-  handleTranscription(data){
-    
-     // 处理转写结果
-     const { text, timestamp=Date.now(), speakerId="speaker" } = data;
-  
-     if (!text || text.trim() === '') {
-       return;
-     }
-     
-     // 格式化时间戳
-     const date = new Date(timestamp);
-     const formattedTime = this.formatTime(date);
- 
-     // 添加到转写结果列表
-     const transcripts = this.data.transcripts;
-     
-     // 检查是否已存在该时间戳的转写，如果存在则更新
-     const existingIndex = transcripts.findIndex(item => 
-       Math.abs(new Date(item.timestamp).getTime() - timestamp) < 1000
-     );
-     
-     if (existingIndex >= 0) {
-       // 更新现有的转写
-       transcripts[existingIndex].text = text;
-       transcripts[existingIndex].speakerId = speakerId;
-     } else {
-       // 添加新的转写
-       transcripts.push({
-         text,
-         timestamp,
-         formattedTime,
-         speakerId
-       });
-       
-       // 按时间戳排序
-       transcripts.sort((a, b) => a.timestamp - b.timestamp);
-     }
-     
-     // 更新数据
-     this.setData({
-       transcripts: transcripts
-     });
+  handleTranscription(data) {
+    // 处理转写结果
+    const { text, timestamp=Date.now(), speakerId="speaker" } = data;
 
-      // 确保滚动到最新消息
-      wx.createSelectorQuery()
-        .select('.transcription-area')
-        .node()
-        .exec((res) => {
-          const scrollView = res[0];
-          if (scrollView && scrollView.scrollTo) {
-            scrollView.scrollTo({
-              top: 999999,
-              behavior: 'smooth'
+    if (!text || text.trim() === '') {
+      return;
+    }
+    
+    // 格式化时间戳
+    const date = new Date(timestamp);
+    const formattedTime = this.formatTime(date);
+
+    // 添加到转写结果列表
+    const transcripts = this.data.transcripts;
+    
+    // 检查是否已存在该时间戳的转写，如果存在则更新
+    const existingIndex = transcripts.findIndex(item => 
+      Math.abs(new Date(item.timestamp).getTime() - timestamp) < 1000
+    );
+    
+    if (existingIndex >= 0) {
+      // 更新现有的转写
+      transcripts[existingIndex].text = text;
+      transcripts[existingIndex].speakerId = speakerId;
+    } else {
+      // 添加新的转写
+      transcripts.push({
+        text,
+        timestamp,
+        formattedTime,
+        speakerId
+      });
+      
+      // 按时间戳排序
+      transcripts.sort((a, b) => a.timestamp - b.timestamp);
+    }
+    
+    // 更新数据
+    this.setData({
+      transcripts: transcripts
+    }, () => {
+      // 在数据更新后执行滚动
+      this.scrollToBottom();
+    });
+  },
+
+  // 滚动到底部
+  scrollToBottom() {
+    // 使用选择器获取滚动视图
+    const query = wx.createSelectorQuery();
+    query.select('.transcription-area').boundingClientRect();
+    query.select('.transcription-content').boundingClientRect();
+    query.exec((res) => {
+      if (res[0] && res[1]) {
+        const scrollView = res[0];
+        const content = res[1];
+        if (scrollView && content) {
+          // 计算需要滚动的距离
+          const scrollDistance = content.height - scrollView.height;
+          if (scrollDistance > 0) {
+            wx.pageScrollTo({
+              scrollTop: scrollDistance,
+              duration: 300
             });
           }
-        });
-   
-
+        }
+      }
+    });
   },
 
   updateDateTime() {
@@ -693,5 +878,101 @@ Page({
       currentTime: `${hours}:${minutes}`,
       recordingTitle: `${year}-${month}-${day} ${hours}:${minutes} 录音`
     });
+  },
+
+  // 初始化并开始录音
+  async initAndStartRecording() {
+    try {
+      // 初始化WebSocket
+      await this.initWebSocket();
+      
+      // 初始化录音管理器
+      const recorderManager = wx.getRecorderManager();
+      
+      // 监听录音开始事件
+      recorderManager.onStart(() => {
+        console.log('录音开始');
+        this.setData({ 
+          isRecording: true,
+          audioBuffer: new Int16Array()  // 重置音频缓冲区
+        });
+        this.startTimer();
+      });
+
+      // 监听录音帧数据事件
+      recorderManager.onFrameRecorded((res) => {
+        if (this.data.socketStatus === 'connected' && res.frameBuffer) {
+          try {
+            // 直接传递帧数据对象
+            this.processAudioChunks(res);
+          } catch (error) {
+            console.error('处理音频帧数据失败:', error);
+          }
+        }
+      });
+
+      // 监听录音停止事件
+      recorderManager.onStop(() => {
+        console.log('录音结束');
+        this.setData({ isRecording: false });
+        this.stopTimer();
+        
+        // 发送剩余的音频数据
+        if (this.data.audioBuffer.length > 0) {
+          this.sendWebSocketMessage(this.data.audioBuffer.buffer);
+        }
+        
+        this.closeWebSocket();
+      });
+
+      // 监听录音错误事件
+      recorderManager.onError((error) => {
+        console.error('录音错误:', error);
+        wx.showToast({
+          title: '录音出错，请重试',
+          icon: 'none'
+        });
+        this.setData({ isRecording: false });
+        this.closeWebSocket();
+      });
+
+      this.recorderManager = recorderManager;
+
+      // 开始录音
+      console.log('开始录音...');
+      recorderManager.start({
+        duration: AUDIO_CONFIG.duration,
+        sampleRate: AUDIO_CONFIG.sampleRate,
+        numberOfChannels: AUDIO_CONFIG.numberOfChannels,
+        encodeBitRate: AUDIO_CONFIG.encodeBitRate,
+        format: AUDIO_CONFIG.format,
+        frameSize: AUDIO_CONFIG.frameSize,
+        needFrame: AUDIO_CONFIG.needFrame
+      });
+
+    } catch (error) {
+      console.error('初始化录音失败:', error);
+      wx.showToast({
+        title: '启动录音失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  // 更新进度条
+  updateProgress() {
+    const progress = (this.data.recordingTime / 600) * 100; // 600秒 = 10分钟
+    this.setData({
+      progressPercent: Math.min(progress, 100)
+    });
+  },
+
+  // 格式化时长
+  formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   },
 });
