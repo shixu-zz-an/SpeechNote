@@ -105,9 +105,35 @@ Page({
   // WebSocket连接
   initWebSocket() {
     return new Promise((resolve, reject) => {
+      const app = getApp();
+      const token = app.globalData.token;
+      
+      // 检查是否有token
+      if (!token) {
+        console.error('WebSocket连接失败: 未找到JWT令牌');
+        wx.showToast({
+          title: '请先登录',
+          icon: 'none'
+        });
+        reject(new Error('未找到JWT令牌'));
+        return;
+      }
+      
+      // 构建WebSocket URL，添加token参数
+      let wsUrl = WS_CONFIG.url;
+      if (wsUrl.indexOf('?') > -1) {
+        wsUrl += '&token=' + encodeURIComponent(token);
+      } else {
+        wsUrl += '?token=' + encodeURIComponent(token);
+      }
+      
       // 创建WebSocket连接
       wx.connectSocket({
-        url: WS_CONFIG.url,
+        url: wsUrl,
+        header: {
+          'Authorization': 'Bearer ' + token,
+          'jwtToken': token
+        },
         success: () => {
           console.log('WebSocket连接创建成功');
         },

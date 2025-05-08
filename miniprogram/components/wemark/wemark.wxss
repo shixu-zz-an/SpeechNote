@@ -3,6 +3,12 @@
   font-size: 32rpx;
   line-height: 1.8em;
   color: #333;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
 }
 
 /* 标题样式 */
@@ -51,6 +57,12 @@
 /* 段落样式 */
 .wemark_block_p {
   margin: 20rpx 0;
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: normal;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
 }
 
 /* 水平分割线 */
@@ -66,9 +78,13 @@
   padding: 20rpx;
   border-radius: 8rpx;
   font-family: monospace;
-  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
   overflow-x: auto;
   margin: 20rpx 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* 列表样式 */

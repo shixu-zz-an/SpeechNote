@@ -151,6 +151,22 @@
 .tab-content {
   padding: 30rpx;
   min-height: 400rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.summary-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.summary-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
 }
 
 .bullet-list {
