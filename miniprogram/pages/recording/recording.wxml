@@ -1,20 +1,15 @@
 <view class="container">
   <!-- 顶部状态栏 -->
   <view class="header">
-    <!-- <view class="time-display">
-      <text class="current-time">{{currentTime}}</text>
-      <text class="total-time">---{{formattedTime}}</text>
-    </view> -->
+    <view class="recording-status" wx:if="{{isRecording}}">
+      <view class="recording-dot"></view>
+      <text>录音中</text>
+    </view>
     <view class="recording-info">
-    <text class="recording-title">{{recordingTitle}}</text>
+      <text class="recording-title">{{recordingTitle}}</text>
+    </view>
+    <view class="language-selector">{{currentLanguage}}</view>
   </view>
-    <view class="language-selector">中文</view>
-  </view>
-
-  <!-- 录音信息 -->
-  <!-- <view class="recording-info">
-    <text class="recording-title">{{recordingTitle}}</text>
-  </view> -->
 
   <!-- 转录内容区域 -->
   <scroll-view scroll-y="true" class="transcription-area">
@@ -23,13 +18,13 @@
         wx:for="{{transcripts}}" 
         wx:key="id" 
         class="transcript-item {{item.isFinal ? 'final' : 'interim'}}">
-        <view class="transcript-time">{{formatTranscriptTime(item.timestamp)}}</view>
+        <view class="transcript-time">| {{item.formattedTime}}</view>
         <view class="transcript-text">{{item.text}}</view>
       </view>
     </block>
     <view wx:else class="empty-transcript">
       <image class="empty-image" src="/assets/images/empty.png" mode="aspectFit"></image>
-      <text class="empty-text">点击下方按钮开始录音</text>
+      <text class="empty-text">正在录音中...</text>
     </view>
   </scroll-view>
 
@@ -51,12 +46,20 @@
     </view>
   </view>
 
+  <!-- 录音进度 -->
+  <view class="time-progress">
+    <view class="progress-bar">
+      <view class="progress-line" style="width: {{progressPercent}}%"></view>
+    </view>
+    <view class="time-display">{{formattedTime}} / {{maxDuration}}</view>
+  </view>
+
   <!-- 底部控制栏 -->
   <view class="footer">
     <view class="controls">
       <view class="btn cancel" bindtap="onCancel">取消</view>
       <view class="record-btn {{isRecording ? 'recording' : ''}}" bindtap="toggleRecording">
-        <view class="record-icon"></view>
+        <view class="record-icon {{isRecording ? 'pause' : 'play'}}"></view>
       </view>
       <view class="btn complete" bindtap="onComplete">完成</view>
     </view>
