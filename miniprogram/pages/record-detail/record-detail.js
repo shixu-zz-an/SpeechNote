@@ -43,6 +43,12 @@ Page({
     if (this.data.audioContext) {
       this.data.audioContext.stop();
     }
+    
+    // 清除定时器
+    if (this.timeUpdateTimer) {
+      clearInterval(this.timeUpdateTimer);
+      this.timeUpdateTimer = null;
+    }
   },
 
   // 加载会议详情
@@ -298,20 +304,74 @@ Page({
   
   // 设置音频源
   audioContext.src = playUrl;
-    // 自动获取音频时长
-    audioContext.onCanplay(() => {
-      console.log('音频可以播放，时长:', audioContext.duration);
+  
+  // 先设置一个默认的音频时长（可以根据实际情况调整）
+  const defaultDuration = 600; // 10分钟，一个合理的默认值
+  const formattedDuration = this.formatTime(defaultDuration);
+  const formattedCurrentTime = this.formatTime(0);
+  
+  this.setData({
+    audioDuration: defaultDuration,
+    formattedDuration: formattedDuration,
+    currentPosition: 0,
+    formattedCurrentTime: formattedCurrentTime
+  });
+  
+  // 使用两种方法获取音频时长
+  // 方法1: onCanplay事件
+  audioContext.onCanplay(() => {
+    console.log('音频可以播放，当前获取的时长:', audioContext.duration);
+    
+    // 只有当获取到有效时长时才更新
+    if (audioContext.duration && audioContext.duration > 0) {
       this.setData({
-        audioDuration: audioContext.duration || 0
+        audioDuration: audioContext.duration
       });
+    }
+  });
+  
+  // 方法2: 使用onTimeUpdate事件获取时长
+  // 在某些情况下，onCanplay事件可能无法获取到正确的时长
+    
+    // 监听播放进度更新 - 每秒多次触发
+    audioContext.onTimeUpdate(() => {
+      // 每次更新都强制刷新当前播放位置
+      const currentTime = audioContext.currentTime;
+      const formattedCurrentTime = this.formatTime(currentTime);
+      
+      // 使用setData更新UI显示
+      this.setData({
+        currentPosition: currentTime,
+        formattedCurrentTime: formattedCurrentTime // 预格式化的时间字符串
+      });
+      
+      // console.log('当前播放位置更新:', currentTime, formattedCurrentTime);
+      
+      // 在播放过程中检查并更新音频时长
+      if (audioContext.duration && audioContext.duration > 0 && audioContext.duration !== this.data.audioDuration) {
+        const duration = audioContext.duration;
+        const formattedDuration = this.formatTime(duration);
+        console.log('播放中更新音频时长:', duration, formattedDuration);
+        
+        this.setData({
+          audioDuration: duration,
+          formattedDuration: formattedDuration // 预格式化的时长字符串
+        });
+      }
     });
     
-    // 监听播放进度更新
-    audioContext.onTimeUpdate(() => {
-      this.setData({
-        currentPosition: audioContext.currentTime
-      });
-    });
+    // 添加定时器确保时间显示更新
+    this.timeUpdateTimer = setInterval(() => {
+      if (this.data.isPlaying && audioContext) {
+        const currentTime = audioContext.currentTime;
+        const formattedCurrentTime = this.formatTime(currentTime);
+        
+        this.setData({
+          currentPosition: currentTime,
+          formattedCurrentTime: formattedCurrentTime
+        });
+      }
+    }, 500); // 每500毫秒强制更新一次
     
     // 监听播放结束
     audioContext.onEnded(() => {

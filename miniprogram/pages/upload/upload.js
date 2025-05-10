@@ -45,7 +45,7 @@ Page({
       count: 1,
       mediaType: ['video', 'audio'],
       sourceType: ['album', 'camera'],
-      maxDuration: 60 * 30, // 最大30分钟
+      // 移除maxDuration参数，避免出现错误
       camera: 'back',
       success: (res) => {
         const file = res.tempFiles[0];
