@@ -1,7 +1,7 @@
 <view class="page-container">
 
   <!-- 主内容区域 -->
-  <view class="main-content">
+  <view class="main-content fade-in">
     <!-- 广告轮播区域 -->
     <view class="banner-container">
       <swiper class="banner-swiper" 
@@ -17,7 +17,7 @@
     </view>
 
     <!-- 功能卡片区域 -->
-    <view class="feature-grid">
+    <view class="feature-grid fade-in" style="animation-delay: 0.1s">
       <view class="feature-card-container">
         <view class="feature-card" bindtap="navigateTo" data-path="/pages/recording/recording">
           <view class="feature-icon blue">
@@ -42,7 +42,7 @@
     </view>
 
     <!-- 最近会议列表 -->
-    <view class="meeting-section">
+    <view class="meeting-section fade-in" style="animation-delay: 0.2s">
       <view class="meeting-header">
         <view class="meeting-title">最近会议</view>
         <view class="view-all" bindtap="navigateToRecords">查看全部</view>
@@ -84,6 +84,7 @@
           
           <!-- 无数据提示 -->
           <view class="empty-list" wx:if="{{recentMeetings.length === 0}}">
+            <text class="empty-list-icon">📋</text>
             <text>暂无会议记录</text>
           </view>
         </view>
@@ -92,10 +93,11 @@
   </view>
 
   <!-- 底部录音按钮 -->
-  <view class="record-button" 
+  <view class="record-button fade-in" 
         bindtap="navigateTo" 
         data-path="/pages/recording/recording"
-        wx:if="{{showRecordButton}}">
+        wx:if="{{showRecordButton}}"
+        style="animation-delay: 0.3s">
     <text class="iconfont icon-mic record-button-icon"></text>
     <text>开始录音</text>
   </view>

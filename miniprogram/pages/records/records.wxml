@@ -22,7 +22,7 @@
     refresher-enabled="{{true}}"
     refresher-threshold="50"
     refresher-default-style="black"
-    refresher-background="#f2f2f2"
+    refresher-background="#f9f9f9"
     refresher-triggered="{{isRefreshing}}"
     bindrefresherrefresh="onRefresh">
     <block wx:for="{{meetingGroups}}" wx:key="date" wx:for-index="groupIndex">

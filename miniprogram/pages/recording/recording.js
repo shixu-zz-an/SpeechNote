@@ -28,6 +28,7 @@ Page({
     recordingId: '',
     transcripts: [],
     lastTranscriptId: null,
+    scrollToView: '', // 用于自动滚动到指定元素
     formattedDate: '',
     currentTime: '',
     formattedTime: '00:00',
@@ -38,7 +39,8 @@ Page({
     needSave: true,
     currentLanguage: '中文',
     maxDuration: '10:00',
-    progressPercent: 0
+    progressPercent: 0,
+    fadeIn: {} // 用于添加淡入动画
   },
 
   // 格式化时间显示
@@ -83,9 +85,17 @@ Page({
     const formattedDate = `${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const recordingTitle = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} 录音`;
 
+    // 创建淡入动画
+    const animation = wx.createAnimation({
+      duration: 300,
+      timingFunction: 'ease',
+    });
+    animation.opacity(1).step();
+
     this.setData({
       formattedDate,
-      recordingTitle
+      recordingTitle,
+      fadeIn: animation.export()
     });
 
     // 启动波形动画
@@ -835,6 +845,7 @@ Page({
 
     // 添加到转写结果列表
     const transcripts = this.data.transcripts;
+    let newItemId = null;
     
     // 检查是否已存在该时间戳的转写，如果存在则更新
     const existingIndex = transcripts.findIndex(item => 
@@ -845,50 +856,64 @@ Page({
       // 更新现有的转写
       transcripts[existingIndex].text = text;
       transcripts[existingIndex].speakerId = speakerId;
+      newItemId = transcripts[existingIndex].id || `transcript-${Date.now()}`;
+      transcripts[existingIndex].id = newItemId;
     } else {
+      // 生成唯一ID
+      newItemId = `transcript-${Date.now()}`;
+      
       // 添加新的转写
       transcripts.push({
+        id: newItemId,
         text,
         timestamp,
         formattedTime,
-        speakerId
+        speakerId,
+        isFinal: true
       });
       
       // 按时间戳排序
       transcripts.sort((a, b) => a.timestamp - b.timestamp);
     }
     
-    // 更新数据
-    this.setData({
-      transcripts: transcripts
-    }, () => {
-      // 在数据更新后执行滚动
-      this.scrollToBottom();
+    // 创建淡入动画
+    const animation = wx.createAnimation({
+      duration: 300,
+      timingFunction: 'ease',
     });
+    animation.opacity(1).step();
+    
+    // 更新数据，先设置滚动到底部元素，然后再滚动到最新项
+    this.setData({
+      transcripts: transcripts,
+      scrollToView: 'transcript-bottom',
+      fadeIn: animation.export()
+    });
+    
+    // 延迟微秒后再滚动到最新项，确保滚动效果生效
+    setTimeout(() => {
+      this.setData({
+        scrollToView: newItemId
+      });
+    }, 50);
   },
 
   // 滚动到底部
   scrollToBottom() {
-    // 使用选择器获取滚动视图
-    const query = wx.createSelectorQuery();
-    query.select('.transcription-area').boundingClientRect();
-    query.select('.transcription-content').boundingClientRect();
-    query.exec((res) => {
-      if (res[0] && res[1]) {
-        const scrollView = res[0];
-        const content = res[1];
-        if (scrollView && content) {
-          // 计算需要滚动的距离
-          const scrollDistance = content.height - scrollView.height;
-          if (scrollDistance > 0) {
-            wx.pageScrollTo({
-              scrollTop: scrollDistance,
-              duration: 300
-            });
-          }
-        }
-      }
+    // 始终滚动到底部元素，确保最新内容可见
+    this.setData({
+      scrollToView: 'transcript-bottom'
     });
+    
+    // 如果有最新的转录项，也可以滚动到该项
+    if (this.data.transcripts && this.data.transcripts.length > 0) {
+      const lastItem = this.data.transcripts[this.data.transcripts.length - 1];
+      if (lastItem && lastItem.id) {
+        this.setData({
+          scrollToView: lastItem.id
+        });
+      }
+    }
   },
 
   updateDateTime() {
