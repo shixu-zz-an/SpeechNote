@@ -99,7 +99,7 @@
   </view>
 
   <!-- Enhanced Audio Player -->
-  <view class="audio-player" wx:if="{{meeting.audioUrl}}">
+  <view class="audio-player" wx:if="{{meeting.audioUrl && activeTab !== 'ai'}}">
     <view class="time-display-container">
       <view class="time-display-box">
         <!-- <text class="time-label">当前</text> -->
