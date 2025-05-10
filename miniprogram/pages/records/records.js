@@ -158,12 +158,13 @@ Page({
       const startTime = new Date(item.startTime);
       const endTime = new Date(item.endTime);
       
-      // 计算会议时长（分钟）
+      // 计算会议时长（包括秒）
       const durationMs = endTime - startTime;
-      const durationMinutes = Math.floor(durationMs / (1000 * 60));
-      const hours = Math.floor(durationMinutes / 60);
-      const minutes = durationMinutes % 60;
-      const durationStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      const totalSeconds = Math.floor(durationMs / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const durationStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       
       // 格式化时间为 HH:MM
       const timeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;

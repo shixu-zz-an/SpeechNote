@@ -10,12 +10,17 @@
 
   <!-- 上传区域 -->
   <view class="upload-container">
-    <view class="upload-area" bindtap="chooseFile">
+    <view class="upload-area">
       <view class="upload-icon">
         <text class="iconfont icon-video"></text>
       </view>
       <text class="upload-text">添加音视频</text>
       <text class="selected-file" wx:if="{{selectedFile}}">已选择: {{selectedFile.name}}</text>
+      
+      <view class="file-source-buttons">
+        <button class="source-button" bindtap="chooseFileFromWechat">从微信选择</button>
+        <button class="source-button" bindtap="chooseFileFromDevice">从手机选择</button>
+      </view>
     </view>
 
     <!-- 文件格式说明 -->

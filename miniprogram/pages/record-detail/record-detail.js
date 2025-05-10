@@ -287,14 +287,17 @@ Page({
       return;
     }
     
-    console.log('音频URL:', this.data.meeting.audioUrl);
+  
     
     // 创建音频上下文
     const audioContext = wx.createInnerAudioContext();
-    
-    // 设置音频源
-    audioContext.src = this.data.meeting.audioUrl;
-    
+  
+  // 使用与 togglePlayback 相同的URL构建逻辑
+  const playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + this.data.meeting.id + '?jwtToken=' + app.globalData.token;
+  console.log('初始化音频URL:', playUrl);
+  
+  // 设置音频源
+  audioContext.src = playUrl;
     // 自动获取音频时长
     audioContext.onCanplay(() => {
       console.log('音频可以播放，时长:', audioContext.duration);
@@ -458,16 +461,20 @@ Page({
       audioContext.pause();
       this.setData({ isPlaying: false });
     } else {
-      if (!audioContext.src && meeting.audioUrl) {
-        // 判断是本地路径还是远程URL
-        const isRemoteUrl = meeting.audioUrl.startsWith('http');
-        audioContext.src = isRemoteUrl ? meeting.audioUrl : app.globalData.baseUrl + meeting.audioUrl;
+      if (!audioContext.src) {
+        // 直接使用指定的URL格式在线播放
+        const playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + meeting.id + '?jwtToken=' + app.globalData.token;
+        console.log('播放音频URL:', playUrl);
+        
+        audioContext.src = playUrl;
       }
       
       audioContext.play();
       this.setData({ isPlaying: true });
     }
   },
+  
+
 
   // 音频定位
   seekAudio(e) {

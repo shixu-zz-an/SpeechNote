@@ -76,6 +76,32 @@
   color: #666;
   text-align: center;
   word-break: break-all;
+  margin-bottom: 32rpx;
+}
+
+/* 文件来源按钮 */
+.file-source-buttons {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+
+.source-button {
+  width: 48%;
+  height: 80rpx;
+  line-height: 80rpx;
+  background-color: #e6f4ff;
+  color: #1677ff;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  border: 1rpx solid #1677ff;
+  margin: 0;
+  padding: 0;
+}
+
+.source-button:active {
+  opacity: 0.8;
 }
 
 /* 文件格式说明 */

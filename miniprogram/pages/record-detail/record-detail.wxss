@@ -354,8 +354,8 @@
   right: 0;
   background-color: #FFF;
   border-top: 1rpx solid #EEE;
-  padding: 20rpx 30rpx;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  padding: 24rpx 30rpx;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
   z-index: 100;
 }
 
@@ -365,15 +365,77 @@
 }
 
 .player-btn {
-  width: 80rpx;
+  min-width: 80rpx;
   height: 80rpx;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
-.player-btn text {
-  font-size: 50rpx;
+/* Enhanced Play/Pause Button */
+.play-pause-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #3E7BFA;
+  box-shadow: 0 4rpx 12rpx rgba(62, 123, 250, 0.3);
+  margin-right: 10rpx;
+  transition: all 0.2s ease;
+}
+
+.play-pause-btn:active {
+  transform: scale(0.95);
+  background-color: #3568d4;
+}
+
+.play-icon, .pause-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.hidden {
+  display: none;
+}
+
+.play-triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 16rpx 0 16rpx 28rpx;
+  border-color: transparent transparent transparent #FFFFFF;
+  margin-left: 8rpx; /* Slight offset for visual centering */
+}
+
+.pause-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pause-bar {
+  width: 8rpx;
+  height: 32rpx;
+  background-color: #FFFFFF;
+  border-radius: 4rpx;
+}
+
+/* Speed Button */
+.speed-btn {
+  background-color: #F0F2F5;
+  border-radius: 30rpx;
+  padding: 0 16rpx;
+  height: 60rpx;
+  margin-left: 10rpx;
+}
+
+.speed-btn text {
+  font-size: 28rpx;
+  font-weight: 500;
   color: #3E7BFA;
 }
 
@@ -390,6 +452,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 24rpx;
-  color: #999;
-  margin-top: 5rpx;
+  color: #666;
+  margin-top: 8rpx;
+  font-weight: 500;
 }

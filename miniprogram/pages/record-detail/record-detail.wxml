@@ -98,11 +98,21 @@
     </view>
   </view>
 
-  <!-- Audio Player -->
+  <!-- Enhanced Audio Player -->
   <view class="audio-player" wx:if="{{meeting.audioUrl}}">
     <view class="player-controls">
-      <view class="player-btn" bindtap="togglePlayback">
-        <text class="iconfont {{isPlaying ? 'icon-pause' : 'icon-play'}}"></text>
+      <view class="player-btn play-pause-btn" bindtap="togglePlayback">
+        <block wx:if="{{!isPlaying}}">
+          <view class="play-icon">
+            <view class="play-triangle"></view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="pause-icon">
+            <view class="pause-bar"></view>
+            <view class="pause-bar"></view>
+          </view>
+        </block>
       </view>
       <view class="player-progress">
         <slider class="progress-slider" min="0" max="{{audioDuration}}" value="{{currentPosition}}" activeColor="#3E7BFA" backgroundColor="#E1E4E8" block-size="12" block-color="#3E7BFA" bindchange="seekAudio"></slider>
@@ -111,7 +121,7 @@
           <text>{{formatTime(audioDuration)}}</text>
         </view>
       </view>
-      <view class="player-btn" bindtap="changePlaybackRate">
+      <view class="player-btn speed-btn" bindtap="changePlaybackRate">
         <text>{{playbackRate}}x</text>
       </view>
     </view>
