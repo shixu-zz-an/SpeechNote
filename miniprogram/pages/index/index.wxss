@@ -1,11 +1,14 @@
 /* u9875u9762u5bb9u5668 */
 .page-container {
   min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   background-color: #f8f8f8;
   display: flex;
   flex-direction: column;
   position: relative;
   padding-bottom: 120rpx; /* u4e3au5e95u90e8u5bfcu822au680fu7559u51fau7a7au95f4 */
+  overflow: hidden;
 }
 
 /* u4e3bu5185u5bb9u533au57df */

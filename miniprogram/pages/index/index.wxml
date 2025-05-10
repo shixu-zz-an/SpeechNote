@@ -51,6 +51,9 @@
       <scroll-view 
         class="meeting-list-scroll"
         scroll-y="{{true}}" 
+        scroll-x="{{false}}"
+        enhanced="{{true}}"
+        bounces="{{false}}"
         refresher-enabled="{{true}}"
         refresher-threshold="{{80}}"
         refresher-default-style="black"
@@ -65,7 +68,9 @@
                 bindtap="navigateToDetail"
                 data-id="{{item.id}}">
             <view class="meeting-icon">
-              <image src="/assets/images/indexList.png" mode="aspectFit" class="list-icon-image"></image>
+              <image wx:if="{{item.rawSource === 1}}" src="/assets/images/indexList.png" mode="aspectFit" class="list-icon-image"></image>
+              <image wx:elif="{{item.rawSource === 2}}" src="/assets/images/upload.png" mode="aspectFit" class="list-icon-image"></image>
+              <image wx:else src="/assets/images/indexList.png" mode="aspectFit" class="list-icon-image"></image>
             </view>
             <view class="meeting-content">
               <view class="meeting-name">{{item.title}}</view>

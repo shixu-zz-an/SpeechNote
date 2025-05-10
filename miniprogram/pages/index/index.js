@@ -144,6 +144,7 @@ Page({
             duration: durationStr,
             source: sourceMap[item.source] || '未知',
             storagePath: item.storagePath,
+            rawSource: item.source, // 添加原始来源值，用于前端图标显示
             rawData: item // 保留原始数据，以备后续使用
           };
         });
