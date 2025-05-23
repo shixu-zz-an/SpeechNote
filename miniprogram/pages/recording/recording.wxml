@@ -1,23 +1,5 @@
 <view class="container">
-  <!-- 顶部导航栏 -->
-  <!-- <view class="header">
-    <view class="header-left">
-      <view class="back-button" bindtap="navigateBack">
-        <text class="iconfont icon-back"></text>
-      </view>
-      <text class="page-title">会议录音</text>
-    </view>
-    
-    <view class="header-right">
-      <view class="icon-button">
-        <text class="iconfont icon-mic"></text>
-      </view>
-      <view class="icon-button">
-        <text class="iconfont icon-video"></text>
-      </view>
-    </view>
-  </view>
-   -->
+
   <!-- 录音状态栏 -->
   <view class="recording-status-bar" wx:if="{{isRecording}}">
     <view class="status-content">

@@ -130,6 +130,9 @@
       <view class="player-btn speed-btn" bindtap="changePlaybackRate">
         <text>{{playbackRate}}x</text>
       </view>
+      <view class="player-btn download-btn" bindtap="downloadAudio">
+        <text class="iconfont icon-download">下载</text>
+      </view>
     </view>
   </view>
 </view>

@@ -829,4 +829,183 @@ Page({
       aiInput: e.detail.value
     });
   },
+  
+  // 下载音频文件到本地
+  downloadAudio() {
+    const { meeting } = this.data;
+    if (!meeting || !meeting.id) {
+      wx.showToast({
+        title: '无法下载音频',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    // 创建下载任务对话框
+    wx.showModal({
+      title: '下载音频',
+      content: `确定下载「${meeting.title}」的音频文件吗？`,
+      confirmText: '下载',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          this.startDownloadWithProgress(meeting.id);
+        }
+      }
+    });
+  },
+  
+  // 显示进度条并下载文件
+  startDownloadWithProgress(meetingId) {
+    // 使用正确的音频下载URL
+    const audioUrl = `${app.globalData.baseUrl}/api/meetings/audio/download/${meetingId}`;
+    console.log('下载音频URL:', audioUrl);
+    
+    // 获取授权令牌
+    const token = wx.getStorageSync('jwtToken');
+    
+    // 创建下载任务
+    const downloadTask = wx.downloadFile({
+      url: audioUrl,
+      header: {
+        'Authorization': token ? `Bearer ${token}` : ''
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          const tempFilePath = res.tempFilePath;
+          // 关闭进度对话框
+          wx.hideLoading();
+          
+          // 弹出保存选项
+          this.showSaveOptions(tempFilePath);
+        } else {
+          wx.hideLoading();
+          wx.showToast({
+            title: `下载失败: ${res.statusCode}`,
+            icon: 'none'
+          });
+        }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('下载文件失败', err);
+        wx.showToast({
+          title: '下载失败: ' + err.errMsg,
+          icon: 'none'
+        });
+      }
+    });
+    
+    // 监听下载进度
+    downloadTask.onProgressUpdate((res) => {
+      const progress = res.progress;
+      // 更新进度提示
+      wx.showLoading({
+        title: `下载中 ${progress}%`,
+        mask: true
+      });
+      
+      console.log('下载进度:', progress);
+      console.log('已经下载的数据长度:', res.totalBytesWritten);
+      console.log('预期需要下载的数据总长度:', res.totalBytesExpectedToWrite);
+    });
+  },
+  
+  // 显示保存选项
+  showSaveOptions(tempFilePath) {
+    // 获取文件名
+    const fileName = `${this.data.meeting.title || '录音'}_${new Date().getTime()}.mp3`;
+    
+    wx.showActionSheet({
+      itemList: ['保存到相册', '保存到微信'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 保存到相册
+          wx.saveImageToPhotosAlbum({
+            filePath: tempFilePath,
+            success: () => {
+              wx.showToast({
+                title: '已保存到相册',
+                icon: 'success'
+              });
+            },
+            fail: (err) => {
+              console.error('保存到相册失败', err);
+              // 如果失败，尝试使用普通保存
+              this.saveFileLocally(tempFilePath);
+            }
+          });
+        } else if (res.tapIndex === 1) {
+          // 保存到微信
+          wx.saveFile({
+            tempFilePath: tempFilePath,
+            success: (saveRes) => {
+              const savedFilePath = saveRes.savedFilePath;
+              wx.showToast({
+                title: '保存成功',
+                icon: 'success'
+              });
+              
+              // 询问是否打开文件
+              wx.showModal({
+                title: '下载成功',
+                content: '音频已保存，是否立即打开？',
+                confirmText: '打开',
+                cancelText: '关闭',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.openDocument({
+                      filePath: savedFilePath,
+                      success: () => {
+                        console.log('打开文档成功');
+                      },
+                      fail: (err) => {
+                        console.error('打开文档失败', err);
+                        wx.showToast({
+                          title: '无法打开此类型文件',
+                          icon: 'none'
+                        });
+                      }
+                    });
+                  }
+                }
+              });
+            },
+            fail: (err) => {
+              console.error('保存文件失败', err);
+              wx.showToast({
+                title: '保存文件失败',
+                icon: 'none'
+              });
+            }
+          });
+        }
+      },
+      fail: () => {
+        // 如果用户取消了选择，则使用默认保存方式
+        this.saveFileLocally(tempFilePath);
+      }
+    });
+  },
+  
+  // 默认保存方式
+  saveFileLocally(tempFilePath) {
+    wx.saveFile({
+      tempFilePath: tempFilePath,
+      success: (saveRes) => {
+        const savedFilePath = saveRes.savedFilePath;
+        wx.showToast({
+          title: '保存成功',
+          icon: 'success'
+        });
+      },
+      fail: (err) => {
+        console.error('保存文件失败', err);
+        wx.showToast({
+          title: '保存文件失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
 });
