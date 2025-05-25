@@ -61,7 +61,6 @@
         disabled="{{isLoggingIn}}"
         wx:if="{{!showPhoneInput}}"
       >
-        <image class="btn-icon" src="/assets/images/wechat.png" mode="aspectFit"></image>
         <text>微信一键登录</text>
       </button>
       

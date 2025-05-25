@@ -9,7 +9,7 @@ const WS_CONFIG = {
 
 // 音频配置
 const AUDIO_CONFIG = {
-  duration: 600000,  // 最长录音时长，单位：ms
+  duration: 10800000,  // 最长录音时长，单位：ms (3小时)
   sampleRate: 16000,  // 目标采样率
   numberOfChannels: 1,  // 录音通道数
   encodeBitRate: 48000,  // 编码码率
@@ -38,7 +38,7 @@ Page({
     waveformData: Array(30).fill(5),
     needSave: true,
     currentLanguage: '中文',
-    maxDuration: '10:00',
+    maxDuration: '03:00:00',
     progressPercent: 0,
     fadeIn: {} // 用于添加淡入动画
   },
@@ -1012,7 +1012,7 @@ Page({
 
   // 更新进度条
   updateProgress() {
-    const progress = (this.data.recordingTime / 600) * 100; // 600秒 = 10分钟
+    const progress = (this.data.recordingTime / 10800) * 100; // 10800秒 = 3小时
     this.setData({
       progressPercent: Math.min(progress, 100)
     });
