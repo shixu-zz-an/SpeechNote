@@ -76,7 +76,7 @@ Page({
   onLoad() {
     this.updateDateTime();
     // 每秒更新时间
-    setInterval(() => {
+    this.dateTimeTimer = setInterval(() => {
       this.updateDateTime();
     }, 1000);
 
@@ -110,6 +110,26 @@ Page({
     this.stopTimer();
     this.stopWaveformAnimation();
     this.closeWebSocket();
+    
+    // 清理时间更新定时器
+    if (this.dateTimeTimer) {
+      clearInterval(this.dateTimeTimer);
+      this.dateTimeTimer = null;
+    }
+    
+    // 移除WebSocket事件监听器
+    if (this.onSocketOpenHandler) {
+      wx.offSocketOpen(this.onSocketOpenHandler);
+    }
+    if (this.onSocketErrorHandler) {
+      wx.offSocketError(this.onSocketErrorHandler);
+    }
+    if (this.onSocketCloseHandler) {
+      wx.offSocketClose(this.onSocketCloseHandler);
+    }
+    if (this.onSocketMessageHandler) {
+      wx.offSocketMessage(this.onSocketMessageHandler);
+    }
   },
 
   // WebSocket连接
@@ -153,8 +173,8 @@ Page({
         }
       });
 
-      // 监听WebSocket连接打开
-      wx.onSocketOpen(() => {
+      // 定义事件处理函数，确保在页面销毁时能正确移除
+      this.onSocketOpenHandler = () => {
         console.log('WebSocket连接已打开');
         this.setData({ socketStatus: 'connected' });
         
@@ -169,25 +189,28 @@ Page({
         });
         
         resolve();
-      });
+      };
 
-      // 监听WebSocket错误
-      wx.onSocketError((error) => {
+      this.onSocketErrorHandler = (error) => {
         console.error('WebSocket错误:', error);
         this.setData({ socketStatus: 'error' });
         reject(error);
-      });
+      };
 
-      // 监听WebSocket关闭
-      wx.onSocketClose(() => {
+      this.onSocketCloseHandler = () => {
         console.log('WebSocket连接已关闭');
         this.setData({ socketStatus: 'closed' });
-      });
+      };
 
-      // 监听WebSocket消息
-      wx.onSocketMessage((res) => {
+      this.onSocketMessageHandler = (res) => {
         this.handleWebSocketMessage(res);
-      });
+      };
+
+      // 监听WebSocket事件
+      wx.onSocketOpen(this.onSocketOpenHandler);
+      wx.onSocketError(this.onSocketErrorHandler);
+      wx.onSocketClose(this.onSocketCloseHandler);
+      wx.onSocketMessage(this.onSocketMessageHandler);
     });
   },
 
