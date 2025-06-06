@@ -476,3 +476,11 @@
   color: #3E7BFA;
   font-weight: 600;
 }
+
+/* 登录提示样式 */
+
+/* 标题编辑提示 */
+.title-edit-hint {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}

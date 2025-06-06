@@ -83,10 +83,11 @@
           </view>
           
           <!-- 无数据提示 -->
-          <view class="empty-list" wx:if="{{recentMeetings.length === 0}}">
+          <view class="empty-list" wx:if="{{recentMeetings.length === 0 && isLogin}}">
             <text class="empty-list-icon">📋</text>
             <text>暂无会议记录</text>
           </view>
+          
         </view>
       </scroll-view>
     </view>

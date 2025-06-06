@@ -13,7 +13,8 @@ Page({
     isRefreshing: false, // 下拉刷新状态
     isDeleting: false, // 删除状态
     startX: 0, // 触摸开始位置
-    moveX: 0  // 触摸移动位置
+    moveX: 0,  // 触摸移动位置
+    loginStatus: false // 新增登录状态
   },
 
   onLoad() {
@@ -23,6 +24,27 @@ Page({
 
   onShow() {
     console.log('records onShow');
+    
+    // 检查登录状态变化
+    const newLoginStatus = app.globalData.isLogin;
+    const oldLoginStatus = this.data.loginStatus || false;
+    
+    // 如果登录状态发生变化，重新加载数据
+    if (newLoginStatus !== oldLoginStatus) {
+      console.log('登录状态变化，重新加载会议记录');
+      this.setData({ loginStatus: newLoginStatus });
+      // 重置分页数据
+      this.setData({
+        pageNumber: 0,
+        meetings: [],
+        meetingGroups: [],
+        originalMeetings: [],
+        hasReachedEnd: false
+      });
+      this.loadMeetings();
+      return;
+    }
+    
     // Tab 页面切换时也需要加载数据
     // 如果需要刷新会议列表
     if (app.globalData.needRefreshMeetings) {
@@ -93,15 +115,25 @@ Page({
       }
 
       console.log(`开始请求会议记录数据，页码: ${this.data.pageNumber}, 每页数量: ${this.data.pageSize}`);
-      // 调用后端接口获取会议记录，增加分页参数
-      const res = await app.request({
+      
+      // 根据登录状态决定是否需要认证
+      const isLogin = app.globalData.isLogin;
+      const requestOptions = {
         url: '/api/meetings',
         method: 'GET',
         data: {
           pageNumber: this.data.pageNumber,
           pageSize: this.data.pageSize
         }
-      });
+      };
+      
+      // 如果未登录，设置noAuth为true以获取公开数据
+      if (!isLogin) {
+        requestOptions.noAuth = true;
+      }
+      
+      // 调用后端接口获取会议记录
+      const res = await app.request(requestOptions);
 
       console.log('会议记录数据:', res);
 
@@ -319,6 +351,23 @@ Page({
 
   // 跳转到录音页面
   navigateToRecording() {
+    // 检查登录状态
+    const app = getApp();
+    if (!app.globalData.isLogin) {
+      wx.showModal({
+        title: '提示',
+        content: '录音功能需要登录后使用，是否立即登录？',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
+    
     wx.navigateTo({
       url: '/pages/recording/recording'
     });
@@ -382,6 +431,23 @@ Page({
   async deleteMeeting(e) {
     const { id } = e.currentTarget.dataset;
     console.log('Delete meeting:', id);
+    
+    // 检查登录状态
+    const app = getApp();
+    if (!app.globalData.isLogin) {
+      wx.showModal({
+        title: '提示',
+        content: '删除记录需要登录后使用，是否立即登录？',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
     
     try {
       // 确认删除

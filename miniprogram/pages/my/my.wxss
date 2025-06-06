@@ -41,6 +41,28 @@ page {
   opacity: 0.8;
 }
 
+/* 设置按钮样式 */
+.settings {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  margin-left: 20rpx;
+}
+
+.settings-icon {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.9;
+}
+
+.settings:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* VIP卡片 */
 .vip-card {
   background: rgba(255, 255, 255, 0.1);
@@ -165,4 +187,72 @@ button::after {
   font-size: 28rpx;
   color: #999;
   margin-left: 20rpx;
+}
+
+/* 登录按钮样式 */
+.login-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+  border-radius: 30rpx;
+  padding: 12rpx 24rpx;
+  margin-left: 20rpx;
+}
+
+.login-text {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.login-button:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 登录提示卡片 */
+.login-tip-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-top: 20rpx;
+}
+
+.login-tip-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-tip-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #fff;
+}
+
+.login-tip-desc {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 12rpx;
+  line-height: 1.5;
+}
+
+.login-tip-button {
+  background: #fff;
+  color: #4a90e2;
+  border-radius: 30rpx;
+  padding: 16rpx 40rpx;
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+  width: auto;
+}
+
+.login-tip-button::after {
+  border: none;
+}
+
+.login-tip-button:active {
+  background: rgba(255, 255, 255, 0.9);
 } 

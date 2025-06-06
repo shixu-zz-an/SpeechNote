@@ -17,7 +17,10 @@
   <view class="recording-info">
     <!-- Editable title with double-click functionality -->
     <view class="recording-title-container">
-      <view class="recording-title" wx:if="{{!isEditingTitle}}" bindtap="handleTitleClick" bindlongtap="handleTitleEdit">{{meeting.title}}</view>
+      <view class="recording-title" wx:if="{{!isEditingTitle}}" bindtap="handleTitleClick" bindlongtap="handleTitleEdit">
+        {{meeting.title}}
+        <text class="title-edit-hint" wx:if="{{isLogin}}" style="font-size: 12px; color: #999; margin-left: 8px;">(双击编辑)</text>
+      </view>
       <input 
         class="recording-title-input" 
         wx:if="{{isEditingTitle}}" 

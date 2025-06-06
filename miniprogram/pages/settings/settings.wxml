@@ -1,2 +1,49 @@
 <!--pages/settings/settings.wxml-->
-<text>pages/settings/settings.wxml</text>
+<view class="settings-page">
+  <!-- 用户信息区域 -->
+  <view class="user-info">
+    <view class="user-header">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/assets/images/default-avatar.png'}}" />
+      <view class="user-detail">
+        <text class="user-name">{{userInfo.nickname || '未设置昵称'}}</text>
+        <text class="user-desc">语音笔记用户</text>
+      </view>
+    </view>
+
+    <!-- 版本信息卡片 -->
+    <view class="version-card">
+      <view class="version-info">
+        <text class="version-label">当前版本</text>
+        <text class="version-number">{{version}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="function-list">
+    <view class="function-item" bindtap="clearCache">
+      <image class="function-icon" src="/assets/images/clean_cache.png" mode="aspectFit" />
+      <text class="function-name">清除缓存</text>
+      <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+    </view>
+    
+    <view class="function-item" bindtap="contactService">
+      <image class="function-icon" src="/assets/images/connect.png" mode="aspectFit" />
+      <text class="function-name">联系客服</text>
+      <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+    </view>
+    
+    <view class="function-item" bindtap="aboutUs">
+      <image class="function-icon" src="/assets/images/about.png" mode="aspectFit" />
+      <text class="function-name">关于我们</text>
+      <image class="arrow" src="/assets/images/arrow-right.png" mode="aspectFit" />
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 -->
+  <view class="logout-section">
+    <view class="logout-button" bindtap="logout">
+      <text class="logout-text">退出登录</text>
+    </view>
+  </view>
+</view>

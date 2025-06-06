@@ -375,6 +375,23 @@ Page({
 
   // 开始录音
   async startRecording() {
+    // 检查登录状态
+    const app = getApp();
+    if (!app.globalData.isLogin) {
+      wx.showModal({
+        title: '提示',
+        content: '录音功能需要登录后使用，是否立即登录？',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
+    
     if (this.data.isRecording) return;
 
     try {

@@ -2,18 +2,23 @@
 <view class="user-info">
   <view class="user-header">
     <image class="avatar" src="{{userInfo.avatarUrl || '/assets/images/default-avatar.png'}}" />
-    <view class="user-detail">
+    <view class="user-detail" wx:if="{{isLogin}}">
       <text class="nickname">{{userInfo.nickname || 'AI_' + uid}}</text>
-      <view class="uid">UID: {{uid}}</view>
+      <view class="uid">UID: {{userInfo.id}}</view>
     </view>
-    <!-- 
-    <view class="settings" bindtap="goToSettings">
-      <image src="/assets/images/settings.png" mode="aspectFit" />
+    
+    <!-- 登录按钮 - 只在未登录时显示 -->
+    <view class="login-button" wx:if="{{!isLogin}}" bindtap="goToLogin">
+      <text class="login-text">点击登录</text>
     </view>
-    -->
+    
+    <!-- 设置按钮 - 只在已登录时显示 -->
+    <view class="settings" wx:if="{{isLogin}}" bindtap="goToSettings">
+      <image src="/assets/images/settings.png" mode="aspectFit" class="settings-icon" />
+    </view>
   </view>
 
-  <!-- VIP信息卡片 -->
+  <!-- VIP信息卡片 - 只在已登录时显示 -->
   <view class="vip-card" bindtap="goToVipPurchase">
     <view class="vip-info">
       <view class="vip-title">

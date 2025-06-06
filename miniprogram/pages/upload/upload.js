@@ -123,6 +123,22 @@ Page({
   },
 
   async handleUpload() {
+    // 检查登录状态
+    if (!app.globalData.isLogin) {
+      wx.showModal({
+        title: '提示',
+        content: '文件上传功能需要登录后使用，是否立即登录？',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
+    
     if (!this.data.selectedFile) {
       wx.showToast({
         title: '请先选择文件',
@@ -137,7 +153,7 @@ Page({
     console.log('开始上传文件:', file);
 
     try {
-      // 检查登录状态
+      // 检查token（这里作为二次检查）
       if (!app.globalData.token) {
         console.error('未登录状态，无法上传');
         wx.showToast({

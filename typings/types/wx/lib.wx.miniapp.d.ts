@@ -649,6 +649,30 @@ interface OpenAppStoreRatingOption {
     /** 接口调用成功的回调函数 */
     success?: OpenAppStoreRatingSuccessCallback
 }
+interface OpenBusinessViewOption {
+    /** 业务类型 */
+    businessType: string
+    /** 查询参数
+     * ] * @description 支持第三方通知微信启动，打开业务页面 */
+    query: string
+    /** 接口调用结束的回调函数（调用成功、失败都会执行） */
+    complete?: OpenBusinessViewCompleteCallback
+    /** 接口调用失败的回调函数 */
+    fail?: OpenBusinessViewFailCallback
+    /** 接口调用成功的回调函数 */
+    success?: OpenBusinessViewSuccessCallback
+}
+interface OpenBusinessWebviewOption {
+    /** 预签约id
+     * ] * @description */
+    preEntrustwebId: string
+    /** 接口调用结束的回调函数（调用成功、失败都会执行） */
+    complete?: OpenBusinessWebviewCompleteCallback
+    /** 接口调用失败的回调函数 */
+    fail?: OpenBusinessWebviewFailCallback
+    /** 接口调用成功的回调函数 */
+    success?: OpenBusinessWebviewSuccessCallback
+}
 interface OpenCustomerServiceChatOption {
     /** 企业id 开发者需前往微信客服官网完成移动应用(appid)和企业id的绑定 */
     corpId: string
@@ -1461,6 +1485,47 @@ wx.miniapp.openAppStoreRating({
 })
 ``` */
     openAppStoreRating(option: OpenAppStoreRatingOption): void
+    /** [wx.miniapp.openBusinessView(Object object)](wx.miniapp.openBusinessView.md)
+*
+* **示例代码**
+*
+* ```js
+wx.miniapp.openBusinessView({
+  businessType: 'requestMerchantTransfer',
+  query: 'mchId=1230000000&appId=wx8888888888888888&package=affffddafdfafddffda%3D%3D',
+  success(res) {
+    wx.showToast({
+      title: '成功',
+    })
+  },
+  fail() {
+    wx.showToast({
+      title: '失败',
+    })
+  }
+})
+``` */
+    openBusinessView(option: OpenBusinessViewOption): void
+    /** [wx.miniapp.openBusinessWebview(Object object)](wx.miniapp.openBusinessWebview.md)
+*
+* **示例代码**
+*
+* ```js
+wx.miniapp.openBusinessWebview({
+  preEntrustwebId: '5778aadY9nltAsZzXixCkFIGYnV2V',
+  success(res) {
+    wx.showToast({
+      title: '成功',
+    })
+  },
+  fail() {
+    wx.showToast({
+      title: '失败',
+    })
+  }
+})
+``` */
+    openBusinessWebview(option: OpenBusinessWebviewOption): void
     /** [wx.miniapp.openCustomerServiceChat(Object object)](wx.miniapp.openCustomerServiceChat.md)
 *
 * 支持调用该接口拉起微信客服功能
@@ -2050,6 +2115,18 @@ type OpenAppStoreRatingCompleteCallback = (res: GeneralCallbackResult) => void
 type OpenAppStoreRatingFailCallback = (res: GeneralCallbackResult) => void
 /** 接口调用成功的回调函数 */
 type OpenAppStoreRatingSuccessCallback = (res: GeneralCallbackResult) => void
+/** 接口调用结束的回调函数（调用成功、失败都会执行） */
+type OpenBusinessViewCompleteCallback = (res: GeneralCallbackResult) => void
+/** 接口调用失败的回调函数 */
+type OpenBusinessViewFailCallback = (res: GeneralCallbackResult) => void
+/** 接口调用成功的回调函数 */
+type OpenBusinessViewSuccessCallback = (res: GeneralCallbackResult) => void
+/** 接口调用结束的回调函数（调用成功、失败都会执行） */
+type OpenBusinessWebviewCompleteCallback = (res: GeneralCallbackResult) => void
+/** 接口调用失败的回调函数 */
+type OpenBusinessWebviewFailCallback = (res: GeneralCallbackResult) => void
+/** 接口调用成功的回调函数 */
+type OpenBusinessWebviewSuccessCallback = (res: GeneralCallbackResult) => void
 /** 接口调用结束的回调函数（调用成功、失败都会执行） */
 type OpenCustomerServiceChatCompleteCallback = (
     res: GeneralCallbackResult

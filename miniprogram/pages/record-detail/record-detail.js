@@ -14,11 +14,15 @@ Page({
     audioContext: null,
     isEditingTitle: false, // 是否正在编辑标题
     editingTitle: '', // 编辑中的标题内容
-    lastClickTime: 0 // 用于检测双击
+    lastClickTime: 0, // 用于检测双击
+    isLogin: false // 添加登录状态
   },
 
   onLoad(options) {
     console.log('onLoad options:', options);
+    // 检查登录状态
+    this.checkLoginStatus();
+    
     // 初始化页面，获取录音ID
     const id = options.id;
     
@@ -37,6 +41,18 @@ Page({
     // 获取会议记录详情
     this.loadMeetingDetail(id);
   },
+
+  onShow() {
+    // 检查并更新登录状态
+    const newLoginStatus = this.checkLoginStatus();
+    const oldLoginStatus = this.data.isLogin;
+    
+    if (newLoginStatus !== oldLoginStatus) {
+      console.log('登录状态变化，重新初始化AI聊天');
+      // 登录状态变化时重新初始化AI聊天
+      this.initAIChat();
+    }
+  },
   
   onUnload() {
     // 页面卸载时停止音频播放
@@ -51,6 +67,43 @@ Page({
     }
   },
 
+  // 检查登录状态
+  checkLoginStatus() {
+    const app = getApp();
+    const isLogin = app.globalData.isLogin;
+    this.setData({
+      isLogin: isLogin
+    });
+    return isLogin;
+  },
+
+  // 跳转到登录页
+  navigateToLogin() {
+    wx.navigateTo({
+      url: '/pages/login/login'
+    });
+  },
+
+  // 需要登录的功能检查
+  checkLoginForAction(actionName, callback) {
+    if (!this.data.isLogin) {
+      wx.showModal({
+        title: '提示',
+        content: `${actionName}需要登录后使用，是否立即登录？`,
+        success: (res) => {
+          if (res.confirm) {
+            this.navigateToLogin();
+          }
+        }
+      });
+      return false;
+    }
+    if (callback) {
+      callback();
+    }
+    return true;
+  },
+
   // 加载会议详情
   async loadMeetingDetail(id) {
     console.log('loadMeetingDetail id:', id);
@@ -61,10 +114,19 @@ Page({
       
       // 调用后端API获取会议详情
       console.log('开始请求会议详情API');
-      const res = await app.request({
+      
+      // 根据登录状态决定是否需要认证
+      const requestOptions = {
         url: `/api/meetings/${id}`,
         method: 'GET'
-      });
+      };
+      
+      // 如果未登录，设置noAuth为true以获取公开数据
+      if (!this.data.isLogin) {
+        requestOptions.noAuth = true;
+      }
+      
+      const res = await app.request(requestOptions);
 
       console.log('API响应:', res);
       if (res.success && res.data) {
@@ -123,16 +185,7 @@ Page({
         ]);
 
         // 初始化AI聊天
-        const aiChat = [
-          {
-            isAI: true,
-            text: '您好，这是会议记录的AI助手。您可以向我询问关于会议内容的问题，我会尽力为您解答。',
-            timestamp: new Date().getTime(),
-            formattedTime: this.formatTime(new Date())
-          }
-        ];
-
-        this.setData({ aiChat });
+        this.initAIChat();
         
         // 在数据加载完成后初始化音频播放器
         this.initAudioPlayer();
@@ -158,10 +211,19 @@ Page({
   async loadMeetingSummary(meetingId) {
     try {
       console.log('开始请求会议总结API');
-      const res = await app.request({
+      
+      // 根据登录状态决定是否需要认证
+      const requestOptions = {
         url: `/api/meetings/${meetingId}/summary`,
         method: 'GET'
-      });
+      };
+      
+      // 如果未登录，设置noAuth为true以获取公开数据
+      if (!this.data.isLogin) {
+        requestOptions.noAuth = true;
+      }
+      
+      const res = await app.request(requestOptions);
 
       console.log('会议总结API响应:', res);
       if (res.success && res.data && res.data.content) {
@@ -181,10 +243,19 @@ Page({
   async loadMeetingSegments(meetingId) {
     try {
       console.log('开始请求会议原文API');
-      const res = await app.request({
+      
+      // 根据登录状态决定是否需要认证
+      const requestOptions = {
         url: `/api/meetings/${meetingId}/segments`,
         method: 'GET'
-      });
+      };
+      
+      // 如果未登录，设置noAuth为true以获取公开数据
+      if (!this.data.isLogin) {
+        requestOptions.noAuth = true;
+      }
+      
+      const res = await app.request(requestOptions);
       
       console.log('会议原文API响应:', res);
       if (res.success && res.data && res.data.length > 0) {
@@ -212,6 +283,20 @@ Page({
       console.error('获取会议原文失败:', error);
       this.setData({ transcripts: [] });
     }
+  },
+
+  // 初始化AI聊天
+  initAIChat() {
+    const aiChatContent = [
+      {
+        isAI: true,
+        text: '您好，这是会议记录的AI助手。您可以向我询问关于会议内容的问题，我会尽力为您解答。',
+        timestamp: new Date().getTime(),
+        formattedTime: this.formatTime(new Date())
+      }
+    ];
+    
+    this.setData({ aiChat: aiChatContent });
   },
 
   // 加载模拟数据（仅开发时使用）
@@ -293,45 +378,53 @@ Page({
       return;
     }
     
-  
-    
     // 创建音频上下文
     const audioContext = wx.createInnerAudioContext();
   
-  // 使用与 togglePlayback 相同的URL构建逻辑
-  const playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + this.data.meeting.id + '?jwtToken=' + app.globalData.token;
-  console.log('初始化音频URL:', playUrl);
-  
-  // 设置音频源
-  audioContext.src = playUrl;
-  
-  // 先设置一个默认的音频时长（可以根据实际情况调整）
-  const defaultDuration = 600; // 10分钟，一个合理的默认值
-  const formattedDuration = this.formatTime(defaultDuration);
-  const formattedCurrentTime = this.formatTime(0);
-  
-  this.setData({
-    audioDuration: defaultDuration,
-    formattedDuration: formattedDuration,
-    currentPosition: 0,
-    formattedCurrentTime: formattedCurrentTime
-  });
-  
-  // 使用两种方法获取音频时长
-  // 方法1: onCanplay事件
-  audioContext.onCanplay(() => {
-    console.log('音频可以播放，当前获取的时长:', audioContext.duration);
+    // 构建音频播放URL，支持未登录用户
+    const token = app.globalData.token || '';
+    let playUrl;
     
-    // 只有当获取到有效时长时才更新
-    if (audioContext.duration && audioContext.duration > 0) {
-      this.setData({
-        audioDuration: audioContext.duration
-      });
+    if (token) {
+      // 已登录用户使用token
+      playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + this.data.meeting.id + '?jwtToken=' + token;
+    } else {
+      // 未登录用户直接访问（后端支持demo数据）
+      playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + this.data.meeting.id;
     }
-  });
+    
+    console.log('初始化音频URL:', playUrl);
   
-  // 方法2: 使用onTimeUpdate事件获取时长
-  // 在某些情况下，onCanplay事件可能无法获取到正确的时长
+    // 设置音频源
+    audioContext.src = playUrl;
+  
+    // 先设置一个默认的音频时长（可以根据实际情况调整）
+    const defaultDuration = 600; // 10分钟，一个合理的默认值
+    const formattedDuration = this.formatTime(defaultDuration);
+    const formattedCurrentTime = this.formatTime(0);
+  
+    this.setData({
+      audioDuration: defaultDuration,
+      formattedDuration: formattedDuration,
+      currentPosition: 0,
+      formattedCurrentTime: formattedCurrentTime
+    });
+  
+    // 使用两种方法获取音频时长
+    // 方法1: onCanplay事件
+    audioContext.onCanplay(() => {
+      console.log('音频可以播放，当前获取的时长:', audioContext.duration);
+      
+      // 只有当获取到有效时长时才更新
+      if (audioContext.duration && audioContext.duration > 0) {
+        this.setData({
+          audioDuration: audioContext.duration
+        });
+      }
+    });
+  
+    // 方法2: 使用onTimeUpdate事件获取时长
+    // 在某些情况下，onCanplay事件可能无法获取到正确的时长
     
     // 监听播放进度更新 - 每秒多次触发
     audioContext.onTimeUpdate(() => {
@@ -396,20 +489,34 @@ Page({
     this.setData({ audioContext });
   },
 
-  // 处理标题点击事件（检测双击）
+  // 处理标题点击（双击编辑）
   handleTitleClick(e) {
+    // 检查登录状态
+    if (!this.checkLoginForAction('编辑标题')) {
+      return;
+    }
+    
     const currentTime = new Date().getTime();
-    // 检测是否是双击（两次点击间隔小于300ms）
-    if (currentTime - this.data.lastClickTime < 300) {
+    const timeDiff = currentTime - this.data.lastClickTime;
+    
+    // 双击检测（500ms内的两次点击）
+    if (timeDiff < 500) {
       this.handleTitleEdit();
     }
+    
     this.setData({
       lastClickTime: currentTime
     });
   },
 
-  // 处理标题编辑
+  // 开始编辑标题
   handleTitleEdit() {
+    // 再次检查登录状态
+    if (!this.data.isLogin) {
+      this.checkLoginForAction('编辑标题');
+      return;
+    }
+    
     this.setData({
       isEditingTitle: true,
       editingTitle: this.data.meeting.title
@@ -453,6 +560,12 @@ Page({
 
   // 更新会议标题到后端
   updateMeetingTitle() {
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      this.checkLoginForAction('编辑标题');
+      return;
+    }
+    
     const { meeting, editingTitle } = this.data;
     
     wx.showLoading({
@@ -522,10 +635,19 @@ Page({
       this.setData({ isPlaying: false });
     } else {
       if (!audioContext.src) {
-        // 直接使用指定的URL格式在线播放
-        const playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + meeting.id + '?jwtToken=' + app.globalData.token;
-        console.log('播放音频URL:', playUrl);
+        // 构建音频播放URL，支持未登录用户
+        const token = app.globalData.token || '';
+        let playUrl;
         
+        if (token) {
+          // 已登录用户使用token
+          playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + meeting.id + '?jwtToken=' + token;
+        } else {
+          // 未登录用户直接访问（后端支持demo数据）
+          playUrl = app.globalData.baseUrl + '/api/meetings/audio/' + meeting.id;
+        }
+        
+        console.log('播放音频URL:', playUrl);
         audioContext.src = playUrl;
       }
       
@@ -534,8 +656,6 @@ Page({
     }
   },
   
-
-
   // 音频定位
   seekAudio(e) {
     const { audioContext } = this.data;
@@ -616,15 +736,23 @@ Page({
       title: 'AI思考中...'
     });
     
-    // 调用后端AI接口
-    app.request({
+    // 根据登录状态决定是否需要认证
+    const requestOptions = {
       url: '/api/chat/context',
       method: 'GET',
       data: {
         meetingId: this.data.meeting.id,
         message: query
       }
-    }).then(res => {
+    };
+    
+    // 如果未登录，设置noAuth为true以使用demo数据
+    if (!this.data.isLogin) {
+      requestOptions.noAuth = true;
+    }
+    
+    // 调用后端AI接口
+    app.request(requestOptions).then(res => {
       wx.hideLoading();
       
       if (res.success) {
@@ -857,19 +985,19 @@ Page({
   
   // 显示进度条并下载文件
   startDownloadWithProgress(meetingId) {
-    // 使用正确的音频下载URL
+    // 使用正确的音频下载URL，支持未登录用户
     const audioUrl = `${app.globalData.baseUrl}/api/meetings/audio/download/${meetingId}`;
     console.log('下载音频URL:', audioUrl);
     
-    // 获取授权令牌
-    const token = wx.getStorageSync('jwtToken');
+    // 获取授权令牌（可能为空）
+    const token = wx.getStorageSync('jwtToken') || '';
     
     // 创建下载任务
     const downloadTask = wx.downloadFile({
       url: audioUrl,
-      header: {
-        'Authorization': token ? `Bearer ${token}` : ''
-      },
+      header: token ? {
+        'Authorization': `Bearer ${token}`
+      } : {},
       success: (res) => {
         if (res.statusCode === 200) {
           const tempFilePath = res.tempFilePath;

@@ -41,7 +41,8 @@ Page({
       }
     ],
     showRecordButton: true,
-    isRefreshing: false // 添加下拉刷新状态
+    isRefreshing: false, // 添加下拉刷新状态
+    isLogin: false // 添加登录状态
   },
 
   onLoad() {
@@ -50,6 +51,20 @@ Page({
   },
 
   onShow() {
+    // 检查并更新登录状态
+    const newLoginStatus = this.checkLoginStatus();
+    const oldLoginStatus = this.data.isLogin;
+    
+    this.setData({
+      isLogin: newLoginStatus
+    });
+    
+    // 如果登录状态发生变化，重新加载会议记录
+    if (newLoginStatus !== oldLoginStatus) {
+      console.log('登录状态变化，重新加载会议记录');
+      this.loadRecentMeetings();
+    }
+    
     // u786eu4fddu5728u9996u9875u65f6u663eu793au5f55u97f3u6309u94ae
     const pages = getCurrentPages();
     const isIndexPage = pages.length === 1;
@@ -96,15 +111,25 @@ Page({
       });
       
       console.log('开始请求最近会议记录数据');
-      // 调用后端接口获取会议记录，增加分页参数
-      const res = await app.request({
+      
+      // 根据登录状态决定是否需要认证
+      const isLogin = this.checkLoginStatus();
+      const requestOptions = {
         url: '/api/meetings',
         method: 'GET',
         data: {
           pageSize,
           pageNumber
         }
-      });
+      };
+      
+      // 如果未登录，设置noAuth为true以获取公开数据
+      if (!isLogin) {
+        requestOptions.noAuth = true;
+      }
+      
+      // 调用后端接口获取会议记录
+      const res = await app.request(requestOptions);
       
       console.log('获取最近会议记录数据成功:', res);
       
@@ -155,13 +180,25 @@ Page({
           recentMeetings: meetings
         });
       } else {
-        throw new Error(res.message || '获取最近会议记录失败');
+        // 如果没有数据，设置为空数组
+        this.setData({
+          recentMeetings: []
+        });
       }
       
       wx.hideLoading();
     } catch (error) {
       console.error('加载最近会议记录失败:', error);
       wx.hideLoading();
+      
+      // 如果是需要登录的错误，设置空数组（未登录时的默认状态）
+      if (error.message === 'NEED_LOGIN') {
+        this.setData({
+          recentMeetings: []
+        });
+        return;
+      }
+      
       wx.showToast({
         title: '加载失败',
         icon: 'none'
@@ -185,9 +222,27 @@ Page({
     });
   },
 
-  // u9875u9762u5bfcu822a
-  navigateTo(e) {
-    const path = e.currentTarget.dataset.path;
+  // 检查登录状态
+  checkLoginStatus() {
+    const app = getApp();
+    return app.globalData.isLogin;
+  },
+
+  // 跳转到登录页
+  navigateToLogin() {
+    wx.navigateTo({
+      url: '/pages/login/login'
+    });
+  },
+
+  // 需要登录的页面跳转
+  navigateToWithLogin(path) {
+    if (!this.checkLoginStatus()) {
+      this.navigateToLogin();
+      return;
+    }
+    
+    // 已登录，正常跳转
     wx.navigateTo({
       url: path,
       fail: () => {
@@ -196,6 +251,31 @@ Page({
         });
       }
     });
+  },
+
+  // u9875u9762u5bfcu822a
+  navigateTo(e) {
+    const path = e.currentTarget.dataset.path;
+    
+    // 检查是否为需要登录的页面
+    const needLoginPaths = [
+      '/pages/recording/recording',  // 实时录音
+      '/pages/upload/upload'         // 文件上传
+    ];
+    
+    if (needLoginPaths.includes(path)) {
+      this.navigateToWithLogin(path);
+    } else {
+      // 不需要登录的页面直接跳转
+      wx.navigateTo({
+        url: path,
+        fail: () => {
+          wx.switchTab({
+            url: path
+          });
+        }
+      });
+    }
   },
 
   // u8df3u8f6cu5230u4f1au8baeu8be6u60c5

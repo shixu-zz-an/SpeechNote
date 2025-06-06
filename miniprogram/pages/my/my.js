@@ -7,15 +7,36 @@ Page({
     isVip: false,
     vipTime: '未开通',
     remainingTime: 0,
-    remainingWords: 0
+    remainingWords: 0,
+    isLogin: false
   },
 
   onLoad: function() {
+    this.checkLoginStatus();
     this.initUserInfo();
   },
 
   onShow: function() {
-    this.refreshVipInfo();
+    this.checkLoginStatus();
+    this.initUserInfo();
+    if (this.data.isLogin) {
+      this.refreshVipInfo();
+    }
+  },
+
+  // 检查登录状态
+  checkLoginStatus: function() {
+    const isLogin = app.globalData.isLogin;
+    this.setData({
+      isLogin: isLogin
+    });
+  },
+
+  // 跳转到登录页
+  goToLogin: function() {
+    wx.navigateTo({
+      url: '/pages/login/login'
+    });
   },
 
   // 初始化用户信息
@@ -31,34 +52,37 @@ Page({
 
   // 刷新VIP信息
   refreshVipInfo: function() {
-    const header = {
-      'content-type': 'application/json',
-      'Authorization': wx.getStorageSync('token')
-    };
-
-    wx.request({
-      url: app.globalData.baseUrl + '/api/user/info',
-      method: 'GET',
-      header: header,
-      success: (res) => {
-        if (res.data ) {
-          const userInfo = res.data;
-          this.setData({
-            isVip: userInfo.hasBuy?userInfo.hasBuy:false,
-           // vipTime: userInfo.hasBuy ? userInfo.expireTime : '未开通',
-            remainingTime: userInfo.remainingAmount || 0,
-            usageTime: userInfo.usageAmount || 0
-          });
-        }
-      },
-      fail: (error) => {
-        console.error('获取VIP信息失败:', error);
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      return;
+    }
+    
+    app.request({
+      url: '/api/user/info',
+      method: 'GET'
+    }).then(res => {
+      if (res) {
+        const userInfo = res;
+        this.setData({
+          isVip: userInfo.hasBuy ? userInfo.hasBuy : false,
+          // vipTime: userInfo.hasBuy ? userInfo.expireTime : '未开通',
+          remainingTime: userInfo.remainingAmount || 0,
+          usageTime: userInfo.usageAmount || 0
+        });
       }
+    }).catch(error => {
+      console.error('获取VIP信息失败:', error);
     });
   },
 
   // 跳转到VIP购买页面
   goToVipPurchase: function() {
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      this.goToLogin();
+      return;
+    }
+    
     wx.navigateTo({
       url: '/pages/purchase/purchase'
     });
@@ -66,6 +90,12 @@ Page({
 
     // 跳转到日程管理
     goToSchedule: function() {
+      // 检查登录状态
+      if (!this.data.isLogin) {
+        this.goToLogin();
+        return;
+      }
+      
       wx.navigateTo({
         url: '/pages/schedule/schedule'
       });
@@ -73,6 +103,12 @@ Page({
 
   // 跳转到设置页面
   goToSettings: function() {
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      this.goToLogin();
+      return;
+    }
+    
     wx.navigateTo({
       url: '/pages/settings/settings'
     });
@@ -80,6 +116,12 @@ Page({
 
   // 跳转到意见反馈页面
   goToFeedback: function() {
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      this.goToLogin();
+      return;
+    }
+    
     wx.navigateTo({
       url: '/pages/feedback/feedback'
     });
@@ -113,6 +155,12 @@ Page({
   // },
 
   goToMySubscription() {
+    // 检查登录状态
+    if (!this.data.isLogin) {
+      this.goToLogin();
+      return;
+    }
+    
     wx.navigateTo({
       url: '/pages/mysubscription/mysubscription'
     })

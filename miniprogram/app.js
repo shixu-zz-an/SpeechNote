@@ -3,6 +3,8 @@ App({
     userInfo: null,
     baseUrl: 'https://asr.aipromaker.cn', // 修改为实际的API地址
     wsUrl:'wss://asr.aipromaker.cn',
+    // baseUrl: 'http://192.168.0.102:9001',
+    // wsUrl: 'ws://192.168.0.102:9001',
     token: '',
     isLogin: false,
     needRefreshMeetings: false,
@@ -17,9 +19,6 @@ App({
     if (token) {
       this.globalData.token = token;
       this.globalData.isLogin = true;
-    } else {
-      // 如果没有token，主动跳转到登录页
-      this.navigateToLogin();
     }
     
     if (userInfo) {
@@ -108,10 +107,9 @@ App({
   // 统一的请求方法
   request(options) {
     return new Promise((resolve, reject) => {
-      // 如果没有登录且不是不需要授权的请求，则跳转到登录页
+      // 如果没有登录且不是不需要授权的请求，则返回错误信息
       if (!this.globalData.isLogin && !options.noAuth) {
-        this.navigateToLogin();
-        reject(new Error('请先登录'));
+        reject(new Error('NEED_LOGIN')); // 返回特定错误码
         return;
       }
 
@@ -134,10 +132,9 @@ App({
               options.header['Authorization'] = newToken;
               this.request(options).then(resolve).catch(reject);
             }).catch(err => {
-              // 重新登录失败，跳转到登录页
+              // 重新登录失败，返回需要登录错误
               this.globalData.isLogin = false;
-              this.navigateToLogin();
-              reject(err);
+              reject(new Error('NEED_LOGIN'));
             });
           } else {
             reject(new Error(res.data.message || '请求失败'));
