@@ -380,6 +380,25 @@ interface ChooseFileSuccessCallbackResult {
     tempFiles: ChooseFile[]
     errMsg: string
 }
+interface ChooseInvoiceOption {
+    appID: string
+    cardSign: string
+    nonceStr: string
+    shopID: number
+    signType: string
+    timeStamp: number
+    /** 接口调用结束的回调函数（调用成功、失败都会执行） */
+    complete?: ChooseInvoiceCompleteCallback
+    /** 接口调用失败的回调函数 */
+    fail?: ChooseInvoiceFailCallback
+    /** 接口调用成功的回调函数 */
+    success?: ChooseInvoiceSuccessCallback
+}
+interface ChooseInvoiceSuccessCallbackResult {
+    /** 用户选中的发票信息，格式为一个 JSON 字符串，是一个数组的序列化。其中每一项包含三个字段： card_id：所选发票卡券的 cardId，encrypt_code：所选发票卡券的加密 code，报销方可以通过 cardId 和 encryptCode 获得报销发票的信息，app_id： 发票方的 appId。 */
+    invoiceInfo: string
+    errMsg: string
+}
 interface CloseAppModuleOption {
     /** 是否仅退入后台,保持后台运行，默认否，直接将小程序杀死。 */
     allowBackgroundRunning?: boolean
@@ -662,16 +681,18 @@ interface OpenBusinessViewOption {
     /** 接口调用成功的回调函数 */
     success?: OpenBusinessViewSuccessCallback
 }
-interface OpenBusinessWebviewOption {
-    /** 预签约id
-     * ] * @description */
-    preEntrustwebId: string
+interface OpenBusinessWebViewOption {
+    /** 业务类型 */
+    businessType: number
+    /** 查询参数
+     * ] * @description 微信支付 APP 纯签约 */
+    queryInfo: IAnyObject
     /** 接口调用结束的回调函数（调用成功、失败都会执行） */
-    complete?: OpenBusinessWebviewCompleteCallback
+    complete?: OpenBusinessWebViewCompleteCallback
     /** 接口调用失败的回调函数 */
-    fail?: OpenBusinessWebviewFailCallback
+    fail?: OpenBusinessWebViewFailCallback
     /** 接口调用成功的回调函数 */
-    success?: OpenBusinessWebviewSuccessCallback
+    success?: OpenBusinessWebViewSuccessCallback
 }
 interface OpenCustomerServiceChatOption {
     /** 企业id 开发者需前往微信客服官网完成移动应用(appid)和企业id的绑定 */
@@ -992,6 +1013,35 @@ rewardedVideoAd.onClose((res) => {
 })
 ``` */
     createRewardedVideoAd(option: CreateRewardedVideoAdOption): RewardedVideoAd
+    /** [string wx.miniapp.chooseInvoice(Object object)](wx.miniapp.chooseInvoice.md)
+*
+* 拉起发票列表
+*
+* **示例代码**
+*
+* ```js
+wx.miniapp.chooseInvoice({
+  appID: 'appID',
+  signType: 'signType',
+  cardSign: 'cardSign',
+  nonceStr: 'nonceStr',
+  shopID: 123,
+  timeStamp : 123,
+  success(res) {
+    wx.showToast({
+      title: '成功',
+    })
+  },
+  fail() {
+    wx.showToast({
+      title: '失败',
+    })
+  }
+})
+``` */
+    chooseInvoice<T extends ChooseInvoiceOption = ChooseInvoiceOption>(
+        option: T
+    ): PromisifySuccessResult<T, ChooseInvoiceOption>
     /** [wx.miniapp.agreePrivacyAuthorization(Object object)](wx.miniapp.agreePrivacyAuthorization.md)
 *
 * 用户同意了隐私协议
@@ -1506,13 +1556,16 @@ wx.miniapp.openBusinessView({
 })
 ``` */
     openBusinessView(option: OpenBusinessViewOption): void
-    /** [wx.miniapp.openBusinessWebview(Object object)](wx.miniapp.openBusinessWebview.md)
+    /** [wx.miniapp.openBusinessWebView(Object object)](wx.miniapp.openBusinessWebView.md)
 *
 * **示例代码**
 *
 * ```js
-wx.miniapp.openBusinessWebview({
-  preEntrustwebId: '5778aadY9nltAsZzXixCkFIGYnV2V',
+wx.miniapp.openBusinessWebView({
+  businessType: 12,
+  queryInfo: {
+    pre_entrustweb_id: '5778aadY9nltAsZzXixCkFIGYnV2V'
+  },
   success(res) {
     wx.showToast({
       title: '成功',
@@ -1525,7 +1578,7 @@ wx.miniapp.openBusinessWebview({
   }
 })
 ``` */
-    openBusinessWebview(option: OpenBusinessWebviewOption): void
+    openBusinessWebView(option: OpenBusinessWebViewOption): void
     /** [wx.miniapp.openCustomerServiceChat(Object object)](wx.miniapp.openCustomerServiceChat.md)
 *
 * 支持调用该接口拉起微信客服功能
@@ -1938,6 +1991,14 @@ type ChooseFileSuccessCallback = (
     result: ChooseFileSuccessCallbackResult
 ) => void
 /** 接口调用结束的回调函数（调用成功、失败都会执行） */
+type ChooseInvoiceCompleteCallback = (res: GeneralCallbackResult) => void
+/** 接口调用失败的回调函数 */
+type ChooseInvoiceFailCallback = (res: GeneralCallbackResult) => void
+/** 接口调用成功的回调函数 */
+type ChooseInvoiceSuccessCallback = (
+    result: ChooseInvoiceSuccessCallbackResult
+) => void
+/** 接口调用结束的回调函数（调用成功、失败都会执行） */
 type CloseAppCompleteCallback = (res: GeneralCallbackResult) => void
 /** 接口调用失败的回调函数 */
 type CloseAppFailCallback = (res: GeneralCallbackResult) => void
@@ -2122,11 +2183,11 @@ type OpenBusinessViewFailCallback = (res: GeneralCallbackResult) => void
 /** 接口调用成功的回调函数 */
 type OpenBusinessViewSuccessCallback = (res: GeneralCallbackResult) => void
 /** 接口调用结束的回调函数（调用成功、失败都会执行） */
-type OpenBusinessWebviewCompleteCallback = (res: GeneralCallbackResult) => void
+type OpenBusinessWebViewCompleteCallback = (res: GeneralCallbackResult) => void
 /** 接口调用失败的回调函数 */
-type OpenBusinessWebviewFailCallback = (res: GeneralCallbackResult) => void
+type OpenBusinessWebViewFailCallback = (res: GeneralCallbackResult) => void
 /** 接口调用成功的回调函数 */
-type OpenBusinessWebviewSuccessCallback = (res: GeneralCallbackResult) => void
+type OpenBusinessWebViewSuccessCallback = (res: GeneralCallbackResult) => void
 /** 接口调用结束的回调函数（调用成功、失败都会执行） */
 type OpenCustomerServiceChatCompleteCallback = (
     res: GeneralCallbackResult

@@ -37,7 +37,7 @@
     ]
   },
   "mini-ios": {
-    "sdkVersion": "1.6.10",
+    "sdkVersion": "1.6.15",
     "toolkitVersion": "0.0.9",
     "useExtendedSdk": {
       "WeAppOpenFuns": true,
@@ -85,6 +85,10 @@
     },
     "buildCloud": {
       "useRemote": false
+    },
+    "appleConnect": {
+      "keyId": "duanxh1984",
+      "keyPath": ""
     }
   }
 }

@@ -3,8 +3,6 @@ App({
     userInfo: null,
     baseUrl: 'https://asr.aipromaker.cn', // 修改为实际的API地址
     wsUrl:'wss://asr.aipromaker.cn',
-    // baseUrl: 'http://192.168.0.102:9001',
-    // wsUrl: 'ws://192.168.0.102:9001',
     token: '',
     isLogin: false,
     needRefreshMeetings: false,

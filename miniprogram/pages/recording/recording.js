@@ -9,13 +9,21 @@ const WS_CONFIG = {
 
 // 音频配置
 const AUDIO_CONFIG = {
-  duration: 10800000,  // 最长录音时长，单位：ms (3小时)
+  duration: 600000,  // 单次录音时长，单位：ms (10分钟，微信限制)
   sampleRate: 16000,  // 目标采样率
   numberOfChannels: 1,  // 录音通道数
   encodeBitRate: 48000,  // 编码码率
   format: 'PCM',  // 音频格式
   frameSize: 1,  // 帧大小
   needFrame: true  // 启用帧录制
+};
+
+// 分段录音配置
+const SEGMENT_CONFIG = {
+  maxDuration: 10800000,  // 总录音时长，单位：ms (3小时)
+  segmentDuration: 600000,  // 每段录音时长，单位：ms (10分钟)
+  overlapTime: 2000,  // 重叠时间，单位：ms (2秒，确保无缝连接)
+  autoRestart: true  // 自动重启录音
 };
 
 // 缓冲区大小
@@ -40,7 +48,19 @@ Page({
     currentLanguage: '中文',
     maxDuration: '03:00:00',
     progressPercent: 0,
-    fadeIn: {} // 用于添加淡入动画
+    fadeIn: {}, // 用于添加淡入动画
+    
+    // 分段录音相关状态
+    segmentIndex: 0,  // 当前录音段索引
+    totalRecordingTime: 0,  // 总录音时间（累计所有段）
+    isSegmentTransitioning: false,  // 是否正在切换录音段
+    segmentStartTime: 0,  // 当前段开始时间
+    lastSegmentEndTime: 0,  // 上一段结束时间
+    shouldContinueRecording: true,  // 是否应该继续录音
+    isFirstSegment: true,  // 是否是第一段录音
+    
+    // 调试相关
+    debugMode: true  // 开启调试模式
   },
 
   // 格式化时间显示
@@ -74,6 +94,9 @@ Page({
   },
 
   onLoad() {
+    // 开启屏幕常亮
+    this.setKeepScreenOn(true);
+    
     this.updateDateTime();
     // 每秒更新时间
     this.dateTimeTimer = setInterval(() => {
@@ -105,10 +128,24 @@ Page({
     this.initAndStartRecording();
   },
 
+  onShow() {
+    // 页面显示时开启屏幕常亮
+    this.setKeepScreenOn(true);
+  },
+
+  onHide() {
+    // 页面隐藏时关闭屏幕常亮
+    this.setKeepScreenOn(false);
+  },
+
   onUnload() {
+    // 关闭屏幕常亮
+    this.setKeepScreenOn(false);
+    
     this.stopRecording();
     this.stopTimer();
     this.stopWaveformAnimation();
+    this.stopRecordingMonitor(); // 停止录音监控
     this.closeWebSocket();
     
     // 清理时间更新定时器
@@ -130,6 +167,19 @@ Page({
     if (this.onSocketMessageHandler) {
       wx.offSocketMessage(this.onSocketMessageHandler);
     }
+  },
+
+  // 设置屏幕常亮状态
+  setKeepScreenOn(keepScreenOn) {
+    wx.setKeepScreenOn({
+      keepScreenOn: keepScreenOn,
+      success: () => {
+        console.log(`屏幕常亮${keepScreenOn ? '开启' : '关闭'}成功`);
+      },
+      fail: (error) => {
+        console.error(`屏幕常亮${keepScreenOn ? '开启' : '关闭'}失败:`, error);
+      }
+    });
   },
 
   // WebSocket连接
@@ -178,15 +228,8 @@ Page({
         console.log('WebSocket连接已打开');
         this.setData({ socketStatus: 'connected' });
         
-        // 发送初始化消息
-        this.sendWebSocketMessage({
-          command: 'START_RECORDING',
-          config: {
-            sampleRate: AUDIO_CONFIG.sampleRate,
-            channels: AUDIO_CONFIG.numberOfChannels,
-            frameSize: AUDIO_CONFIG.frameSize
-          }
-        });
+        // 不在这里发送START_RECORDING命令，让分段录音逻辑来处理
+        // 这样可以确保只在第一段录音时发送一次命令
         
         resolve();
       };
@@ -260,7 +303,7 @@ Page({
 
       // 获取当前帧的Int16Array数据
       const frameData = new Int16Array(newAudioData.frameBuffer);
-      console.log('收到音频帧数据，长度:', frameData.length);
+      //console.log('收到音频帧数据，长度:', frameData.length);
       
       // 更新波形数据
       this.updateWaveform(frameData);
@@ -280,7 +323,7 @@ Page({
         const sendData = newBuffer.slice(0, 1920);
         
         if (this.data.socketStatus === 'connected') {
-          console.log('发送音频数据，大小:', sendData.length);
+          //console.log('发送音频数据，大小:', sendData.length);
           this.sendWebSocketMessage(sendData.buffer);
         } else {
           console.log('WebSocket未连接，无法发送音频数据');
@@ -316,21 +359,36 @@ Page({
 
       recorderManager.onStart(() => {
         console.log('录音开始');
+        const currentTime = Date.now();
         this.setData({ 
           isRecording: true,
-          audioBuffer: new Int16Array()  // 重置音频缓冲区
+          audioBuffer: new Int16Array(),  // 重置音频缓冲区
+          segmentStartTime: currentTime,
+          isSegmentTransitioning: false
         });
-        this.startTimer();
+        
+        // 只在第一段录音时重置计时器，分段重启时不重置
+        if (this.data.isFirstSegment) {
+          this.startTimer(true); // 重置时间
+        } else {
+          // 分段重启时，重新启动计时器但不重置时间
+          // 因为 recordingTime 已经在 handleSegmentEnd 中被重置为 0
+          this.startTimer(false); // 不重置时间，但重新启动计时器
+        }
+        
+        this.startRecordingMonitor(); // 启动录音监控
 
-        // 发送开始录音命令
-        this.sendWebSocketMessage({
-          command: 'START_RECORDING',
-          config: {
-            sampleRate: AUDIO_CONFIG.sampleRate,
-            channels: AUDIO_CONFIG.numberOfChannels,
-            frameSize: AUDIO_CONFIG.frameSize
-          }
-        });
+        // 只在第一段录音时发送开始录音命令，避免服务器感知到分段
+        if (this.data.isFirstSegment) {
+          this.sendWebSocketMessage({
+            command: 'START_RECORDING',
+            config: {
+              sampleRate: AUDIO_CONFIG.sampleRate,
+              channels: AUDIO_CONFIG.numberOfChannels,
+              frameSize: AUDIO_CONFIG.frameSize
+            }
+          });
+        }
       });
 
       recorderManager.onFrameRecorded((res) => {
@@ -347,25 +405,38 @@ Page({
       recorderManager.onStop(() => {
         console.log('录音结束');
         this.setData({ isRecording: false });
-        this.stopTimer();
+        this.stopRecordingMonitor(); // 停止录音监控
         
         // 发送剩余的音频数据
         if (this.data.audioBuffer.length > 0) {
           this.sendWebSocketMessage(this.data.audioBuffer.buffer);
         }
         
-        this.closeWebSocket();
+        // 检查是否需要继续录音（分段录音逻辑）
+        this.handleSegmentEnd();
       });
 
       recorderManager.onError((error) => {
         console.error('录音错误:', error);
+        
+        // 在分段录音模式下，如果是录音管理器状态错误，尝试重启
+        if (this.data.shouldContinueRecording && 
+            error.errMsg && 
+            error.errMsg.includes('is recording or paused')) {
+          console.log('检测到录音状态错误，尝试重启录音段...');
+          setTimeout(() => {
+            this.restartRecording();
+          }, 1000);
+          return;
+        }
+        
+        // 其他错误或非分段录音模式，显示错误提示
         wx.showToast({
           title: '录音出错，请重试',
           icon: 'none'
         });
         this.setData({ isRecording: false });
         this.closeWebSocket();
-        reject(error);
       });
 
       this.recorderManager = recorderManager;
@@ -432,6 +503,9 @@ Page({
     if (!this.recorderManager || !this.data.isRecording) return;
 
     try {
+      // 设置停止标志
+      this.setData({ shouldContinueRecording: false });
+      
       this.recorderManager.stop();
       this.stopTimer();
       this.setData({
@@ -555,21 +629,43 @@ Page({
   // 恢复计时器
   resumeTimer() {
     if (!this.timer) {
-      this.startTimer();
+      this.startTimer(false); // 恢复时不重置时间
     }
   },
 
   // 开始计时器
-  startTimer() {
-    // 重置录音时间
-    this.setData({ 
-      recordingTime: 0,
-      formattedTime: '00:00'
-    });
+  startTimer(resetTime = true) {
+    // 先清理旧的计时器，防止多次叠加
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    console.log(`=== 开始计时器 ===`);
+    console.log(`resetTime: ${resetTime}`);
+    console.log(`当前recordingTime: ${this.data.recordingTime}`);
+    console.log(`当前totalRecordingTime: ${this.data.totalRecordingTime}ms`);
+    
+    // 只有在重置时间时才重置录音时间
+    if (resetTime) {
+      console.log('重置录音时间');
+      this.setData({ 
+        recordingTime: 0,
+        formattedTime: '00:00'
+      });
+    } else {
+      console.log('不重置录音时间，保持连续性');
+      // 计算当前应该显示的总时间
+      const totalTimeSeconds = this.data.totalRecordingTime / 1000 + this.data.recordingTime;
+      const formattedTime = this.formatDuration(totalTimeSeconds);
+      this.setData({ formattedTime: formattedTime });
+    }
 
     this.timer = setInterval(() => {
       const newTime = this.data.recordingTime + 1;
-      const formattedTime = this.formatDuration(newTime);
+      const totalTime = this.data.totalRecordingTime / 1000 + newTime; // 转换为秒
+      const formattedTime = this.formatDuration(totalTime);
+      
+      console.log(`计时器更新: recordingTime=${newTime}, totalTime=${totalTime}s, formattedTime=${formattedTime}`);
       
       this.setData({
         recordingTime: newTime,
@@ -635,7 +731,7 @@ Page({
 
   // 保存录音
   handleSave() {
-    const { recordingTime, recordingTitle, transcripts, recordingId } = this.data;
+    const { recordingTime, recordingTitle, transcripts, recordingId, totalRecordingTime } = this.data;
 
     if (!recordingId) {
       wx.showToast({
@@ -645,12 +741,15 @@ Page({
       return;
     }
 
+    // 计算总录音时长
+    const totalTimeSeconds = (totalRecordingTime / 1000) + recordingTime;
+
     // 创建新的会议记录
     const newMeeting = {
       id: recordingId,
       title: recordingTitle,
       time: this.data.formattedDate.split(' ')[1],
-      duration: this.formatDuration(recordingTime),
+      duration: this.formatDuration(totalTimeSeconds),
       source: '小程序',
       content: transcripts
     };
@@ -826,13 +925,15 @@ Page({
   handleWebSocketError(error) {
     console.error('WebSocket错误:', error);
     
+    // 保存当前录音状态
     this.setData({ 
-      socketStatus: 'closed'
+      socketStatus: 'closed',
+      shouldContinueRecording: false  // 停止继续录音
     });
 
     // 显示错误提示
     wx.showToast({
-      title: '网络连接异常，请检查网络设置',
+      title: '网络连接异常，录音已停止',
       icon: 'none',
       duration: 2000
     });
@@ -983,11 +1084,36 @@ Page({
       // 监听录音开始事件
       recorderManager.onStart(() => {
         console.log('录音开始');
+        const currentTime = Date.now();
         this.setData({ 
           isRecording: true,
-          audioBuffer: new Int16Array()  // 重置音频缓冲区
+          audioBuffer: new Int16Array(),  // 重置音频缓冲区
+          segmentStartTime: currentTime,
+          isSegmentTransitioning: false
         });
-        this.startTimer();
+        
+        // 只在第一段录音时重置计时器，分段重启时不重置
+        if (this.data.isFirstSegment) {
+          this.startTimer(true); // 重置时间
+        } else {
+          // 分段重启时，重新启动计时器但不重置时间
+          // 因为 recordingTime 已经在 handleSegmentEnd 中被重置为 0
+          this.startTimer(false); // 不重置时间，但重新启动计时器
+        }
+        
+        this.startRecordingMonitor(); // 启动录音监控
+
+        // 只在第一段录音时发送开始录音命令，避免服务器感知到分段
+        if (this.data.isFirstSegment) {
+          this.sendWebSocketMessage({
+            command: 'START_RECORDING',
+            config: {
+              sampleRate: AUDIO_CONFIG.sampleRate,
+              channels: AUDIO_CONFIG.numberOfChannels,
+              frameSize: AUDIO_CONFIG.frameSize
+            }
+          });
+        }
       });
 
       // 监听录音帧数据事件
@@ -1006,19 +1132,33 @@ Page({
       recorderManager.onStop(() => {
         console.log('录音结束');
         this.setData({ isRecording: false });
-        this.stopTimer();
+        this.stopRecordingMonitor(); // 停止录音监控
         
         // 发送剩余的音频数据
         if (this.data.audioBuffer.length > 0) {
           this.sendWebSocketMessage(this.data.audioBuffer.buffer);
         }
         
-        this.closeWebSocket();
+        // 检查是否需要继续录音（分段录音逻辑）
+        this.handleSegmentEnd();
       });
 
       // 监听录音错误事件
       recorderManager.onError((error) => {
         console.error('录音错误:', error);
+        
+        // 在分段录音模式下，如果是录音管理器状态错误，尝试重启
+        if (this.data.shouldContinueRecording && 
+            error.errMsg && 
+            error.errMsg.includes('is recording or paused')) {
+          console.log('检测到录音状态错误，尝试重启录音段...');
+          setTimeout(() => {
+            this.restartRecording();
+          }, 1000);
+          return;
+        }
+        
+        // 其他错误或非分段录音模式，显示错误提示
         wx.showToast({
           title: '录音出错，请重试',
           icon: 'none'
@@ -1032,7 +1172,7 @@ Page({
       // 开始录音
       console.log('开始录音...');
       recorderManager.start({
-        duration: AUDIO_CONFIG.duration,
+        duration: SEGMENT_CONFIG.segmentDuration,  // 使用分段录音时长
         sampleRate: AUDIO_CONFIG.sampleRate,
         numberOfChannels: AUDIO_CONFIG.numberOfChannels,
         encodeBitRate: AUDIO_CONFIG.encodeBitRate,
@@ -1052,7 +1192,8 @@ Page({
 
   // 更新进度条
   updateProgress() {
-    const progress = (this.data.recordingTime / 10800) * 100; // 10800秒 = 3小时
+    const totalTimeSeconds = (this.data.totalRecordingTime / 1000) + this.data.recordingTime;
+    const progress = (totalTimeSeconds / 10800) * 100; // 10800秒 = 3小时
     this.setData({
       progressPercent: Math.min(progress, 100)
     });
@@ -1060,10 +1201,182 @@ Page({
 
   // 格式化时长
   formatDuration(seconds) {
+    seconds = Math.floor(seconds); // 先取整，避免出现小数
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  },
+
+  // 处理录音段结束
+  handleSegmentEnd() {
+    const currentTime = Date.now();
+    const segmentDuration = currentTime - this.data.segmentStartTime;
+    const totalTime = this.data.totalRecordingTime + segmentDuration;
+    
+    console.log(`=== 录音段结束处理 ===`);
+    console.log(`当前时间: ${currentTime}`);
+    console.log(`段开始时间: ${this.data.segmentStartTime}`);
+    console.log(`录音段 ${this.data.segmentIndex} 结束，时长: ${segmentDuration}ms (${segmentDuration/1000}s)`);
+    console.log(`之前总时长: ${this.data.totalRecordingTime}ms (${this.data.totalRecordingTime/1000}s)`);
+    console.log(`新的总时长: ${totalTime}ms (${totalTime/1000}s)`);
+    console.log(`shouldContinueRecording: ${this.data.shouldContinueRecording}`);
+    console.log(`autoRestart: ${SEGMENT_CONFIG.autoRestart}`);
+    console.log(`当前状态:`, this.data);
+    
+    // 更新总录音时间
+    this.setData({
+      totalRecordingTime: totalTime,
+      lastSegmentEndTime: currentTime,
+      segmentIndex: this.data.segmentIndex + 1,
+      isFirstSegment: false
+    });
+    
+    console.log(`=== 更新后的状态 ===`);
+    console.log(`更新后的 totalRecordingTime: ${totalTime}ms (${totalTime/1000}s)`);
+    console.log(`更新后的 segmentIndex: ${this.data.segmentIndex + 1}`);
+    
+    // 检查是否达到最大录音时长
+    if (totalTime >= SEGMENT_CONFIG.maxDuration) {
+      console.log('达到最大录音时长，停止录音');
+      this.setData({ shouldContinueRecording: false });
+      this.stopTimer();
+      this.closeWebSocket();
+      return;
+    }
+    
+    // 检查是否应该继续录音
+    if (this.data.shouldContinueRecording && SEGMENT_CONFIG.autoRestart) {
+      console.log('准备开始下一段录音...');
+      this.setData({ isSegmentTransitioning: true });
+      
+      // 重置计时器的 recordingTime，但保持 totalRecordingTime
+      // 这样计时器会从 0 开始，但总时间会正确累加
+      this.setData({ recordingTime: 0 });
+      
+      console.log(`重置 recordingTime 为 0，保持 totalRecordingTime: ${totalTime}ms`);
+      
+      // 延迟重启录音，确保无缝连接
+      setTimeout(() => {
+        this.restartRecording();
+      }, SEGMENT_CONFIG.overlapTime);
+    } else {
+      console.log('不继续录音，停止计时器和WebSocket');
+      this.stopTimer();
+      this.closeWebSocket();
+    }
+  },
+
+  // 重启录音段
+  async restartRecording() {
+    console.log(`=== 重启录音段 ===`);
+    console.log(`shouldContinueRecording: ${this.data.shouldContinueRecording}`);
+    console.log(`segmentIndex: ${this.data.segmentIndex}`);
+    console.log(`recorderManager:`, this.recorderManager);
+    
+    if (!this.data.shouldContinueRecording) {
+      console.log('shouldContinueRecording为false，不重启录音');
+      return;
+    }
+    
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const attemptRestart = async () => {
+      try {
+        console.log(`开始第 ${this.data.segmentIndex} 段录音`);
+        
+        // 确保录音管理器处于正确状态
+        if (this.recorderManager) {
+          // 先停止当前录音，确保状态正确
+          try {
+            this.recorderManager.stop();
+            console.log('停止当前录音，准备重启');
+            // 等待一小段时间确保状态更新
+            await new Promise(resolve => setTimeout(resolve, 100));
+          } catch (e) {
+            console.log('停止录音时出现异常（可能是正常状态）:', e);
+          }
+        }
+        
+        // 设置当前段的开始时间
+        const currentTime = Date.now();
+        this.setData({
+          segmentStartTime: currentTime,
+          audioBuffer: new Int16Array(),
+          isSegmentTransitioning: false
+        });
+        
+        console.log(`第 ${this.data.segmentIndex} 段开始时间: ${currentTime}`);
+        
+        // 重新开始录音
+        console.log('调用recorderManager.start...');
+        this.recorderManager.start({
+          duration: SEGMENT_CONFIG.segmentDuration,
+          sampleRate: AUDIO_CONFIG.sampleRate,
+          numberOfChannels: AUDIO_CONFIG.numberOfChannels,
+          encodeBitRate: AUDIO_CONFIG.encodeBitRate,
+          format: AUDIO_CONFIG.format,
+          frameSize: AUDIO_CONFIG.frameSize,
+          needFrame: AUDIO_CONFIG.needFrame
+        });
+        
+        console.log('录音重启成功');
+        
+        // 不发送任何命令到服务器，保持音频流的连续性
+        // 服务器端会认为这是一个连续的录音会话
+        
+      } catch (error) {
+        console.error('重启录音失败:', error);
+        retryCount++;
+        
+        if (retryCount < maxRetries) {
+          console.log(`重启录音失败，第${retryCount}次重试...`);
+          setTimeout(attemptRestart, 1000);
+        } else {
+          console.log('重试次数已达上限，停止录音');
+          wx.showToast({
+            title: '录音重启失败，请手动重试',
+            icon: 'none'
+          });
+          this.setData({ shouldContinueRecording: false });
+        }
+      }
+    };
+    
+    await attemptRestart();
+  },
+
+  // 监控录音状态
+  startRecordingMonitor() {
+    if (!this.data.debugMode) return;
+    
+    this.recordingMonitor = setInterval(() => {
+      console.log(`=== 录音状态监控 ===`);
+      console.log(`isRecording: ${this.data.isRecording}`);
+      console.log(`segmentIndex: ${this.data.segmentIndex}`);
+      console.log(`totalRecordingTime: ${this.data.totalRecordingTime}ms`);
+      console.log(`recordingTime: ${this.data.recordingTime}s`);
+      console.log(`shouldContinueRecording: ${this.data.shouldContinueRecording}`);
+      console.log(`isSegmentTransitioning: ${this.data.isSegmentTransitioning}`);
+      console.log(`socketStatus: ${this.data.socketStatus}`);
+      
+      // 检查录音是否意外停止
+      // 只有在应该继续录音、不在切换状态、且录音确实停止时才重启
+      if (this.data.shouldContinueRecording && 
+          !this.data.isRecording && 
+          !this.data.isSegmentTransitioning &&
+          this.data.socketStatus === 'connected') {
+        console.warn('检测到录音意外停止，尝试重启...');
+        this.restartRecording();
+      }
+    }, 5000); // 每5秒检查一次
+  },
+
+  stopRecordingMonitor() {
+    if (this.recordingMonitor) {
+      clearInterval(this.recordingMonitor);
+      this.recordingMonitor = null;
+    }
   },
 });

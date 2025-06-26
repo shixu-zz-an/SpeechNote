@@ -177,6 +177,8 @@ Page({
         url: app.globalData.baseUrl + '/api/fileUpload/audio',  // 使用正确的API端点
         filePath: file.path,
         name: 'file',
+        timeout: 600000,
+        method:"post",
         header: {
           'Authorization': app.globalData.token
         },
@@ -284,6 +286,8 @@ Page({
     const uploadTask = wx.uploadFile({
       url: app.globalData.baseUrl + '/api/fileUpload/audio',  // 尝试备用端点
       filePath: filePath,
+      timeout: 600000,
+      method:"post",
       name: 'file',
       header: {
         'Authorization': app.globalData.token
