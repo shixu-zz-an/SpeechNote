@@ -1,8 +1,10 @@
 App({
   globalData: {
     userInfo: null,
-    baseUrl: 'https://asr.aipromaker.cn', // 修改为实际的API地址
-    wsUrl:'wss://asr.aipromaker.cn',
+    // baseUrl: 'https://asr.aipromaker.cn', // 修改为实际的API地址
+    // wsUrl:'wss://asr.aipromaker.cn',
+    baseUrl: 'https://www.speevolt.cn', // 修改为实际的API地址
+    wsUrl:'wss://www.speevolt.cn',
     token: '',
     isLogin: false,
     needRefreshMeetings: false,
