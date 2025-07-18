@@ -349,17 +349,30 @@ Page({
   // 初始化录音管理器
   initRecorder() {
     return new Promise((resolve, reject) => {
+      console.log('=== initRecorder 开始 ===');
+      console.log('WebSocket状态检查:', this.data.socketStatus);
+      
       if (this.data.socketStatus !== 'connected') {
+        console.error('WebSocket未连接，无法初始化录音管理器');
         reject(new Error('WebSocket未连接'));
         return;
       }
+      
+      console.log('请求录音权限...');
       wx.authorize({scope: "scope.record"});
 
       const recorderManager = wx.getRecorderManager();
+      console.log('录音管理器实例创建完成');
 
       recorderManager.onStart(() => {
-        console.log('录音开始');
+        console.log('=== 录音管理器 onStart 事件触发 (initRecorder) ===');
         const currentTime = Date.now();
+        console.log('当前时间:', currentTime);
+        console.log('是否第一段录音:', this.data.isFirstSegment);
+        console.log('当前段索引:', this.data.segmentIndex);
+        console.log('总录音时间:', this.data.totalRecordingTime);
+        console.log('WebSocket状态:', this.data.socketStatus);
+        
         this.setData({ 
           isRecording: true,
           audioBuffer: new Int16Array(),  // 重置音频缓冲区
@@ -367,20 +380,30 @@ Page({
           isSegmentTransitioning: false
         });
         
+        console.log('录音状态已更新:', {
+          isRecording: true,
+          segmentStartTime: currentTime,
+          isSegmentTransitioning: false
+        });
+        
         // 只在第一段录音时重置计时器，分段重启时不重置
         if (this.data.isFirstSegment) {
+          console.log('第一段录音，重置计时器');
           this.startTimer(true); // 重置时间
         } else {
+          console.log('分段录音重启，不重置计时器时间');
           // 分段重启时，重新启动计时器但不重置时间
           // 因为 recordingTime 已经在 handleSegmentEnd 中被重置为 0
           this.startTimer(false); // 不重置时间，但重新启动计时器
         }
         
+        console.log('启动录音监控...');
         this.startRecordingMonitor(); // 启动录音监控
 
         // 只在第一段录音时发送开始录音命令，避免服务器感知到分段
         if (this.data.isFirstSegment) {
-          this.sendWebSocketMessage({
+          console.log('第一段录音，发送 START_RECORDING 命令到服务器');
+          const success = this.sendWebSocketMessage({
             command: 'START_RECORDING',
             config: {
               sampleRate: AUDIO_CONFIG.sampleRate,
@@ -388,55 +411,129 @@ Page({
               frameSize: AUDIO_CONFIG.frameSize
             }
           });
+          console.log('START_RECORDING 命令发送结果:', success);
+        } else {
+          console.log('分段录音重启，不发送 START_RECORDING 命令（保持服务器端连续性）');
         }
+        
+        console.log('=== 录音管理器 onStart 处理完成 (initRecorder) ===');
       });
 
       recorderManager.onFrameRecorded((res) => {
+        // 每10秒打印一次帧数据状态，避免日志过多
+        if (!this.frameLogCounter) this.frameLogCounter = 0;
+        this.frameLogCounter++;
+        
+        if (this.frameLogCounter % 100 === 0) { // 大约每10秒打印一次
+          console.log('=== 音频帧数据接收状态 ===');
+          console.log('帧计数器:', this.frameLogCounter);
+          console.log('WebSocket状态:', this.data.socketStatus);
+          console.log('录音状态:', this.data.isRecording);
+          console.log('当前段索引:', this.data.segmentIndex);
+          console.log('帧数据大小:', res.frameBuffer ? res.frameBuffer.byteLength : 'null');
+        }
+        
         if (this.data.socketStatus === 'connected' && res.frameBuffer) {
           try {
             // 直接传递帧数据对象
             this.processAudioChunks(res);
           } catch (error) {
-            console.error('处理音频帧数据失败:', error);
+            console.error('=== 处理音频帧数据失败 ===');
+            console.error('错误详情:', error);
+            console.error('帧数据:', res);
+            console.error('当前状态:', {
+              socketStatus: this.data.socketStatus,
+              isRecording: this.data.isRecording,
+              segmentIndex: this.data.segmentIndex
+            });
+          }
+        } else {
+          if (this.frameLogCounter % 50 === 0) { // 减少频率
+            console.log('跳过帧数据处理:', {
+              socketConnected: this.data.socketStatus === 'connected',
+              hasFrameBuffer: !!res.frameBuffer
+            });
           }
         }
       });
 
       recorderManager.onStop(() => {
-        console.log('录音结束');
+        console.log('=== 录音管理器 onStop 事件触发 ===');
+        console.log('停止时间:', Date.now());
+        console.log('当前段索引:', this.data.segmentIndex);
+        console.log('段开始时间:', this.data.segmentStartTime);
+        console.log('应该继续录音:', this.data.shouldContinueRecording);
+        console.log('总录音时间:', this.data.totalRecordingTime);
+        console.log('当前段录音时间:', this.data.recordingTime);
+        
         this.setData({ isRecording: false });
+        console.log('录音状态已设为false');
+        
         this.stopRecordingMonitor(); // 停止录音监控
+        console.log('录音监控已停止');
         
         // 发送剩余的音频数据
         if (this.data.audioBuffer.length > 0) {
+          console.log('发送剩余音频数据，大小:', this.data.audioBuffer.length);
           this.sendWebSocketMessage(this.data.audioBuffer.buffer);
+        } else {
+          console.log('无剩余音频数据需要发送');
         }
         
         // 检查是否需要继续录音（分段录音逻辑）
+        console.log('开始处理录音段结束逻辑...');
         this.handleSegmentEnd();
+        console.log('=== 录音管理器 onStop 处理完成 ===');
       });
 
       recorderManager.onError((error) => {
-        console.error('录音错误:', error);
+        console.error('=== 录音管理器 onError 事件触发 ===');
+        console.error('错误详情:', error);
+        console.error('错误消息:', error.errMsg);
+        console.error('错误代码:', error.errCode);
+        console.log('当前状态:', {
+          isRecording: this.data.isRecording,
+          segmentIndex: this.data.segmentIndex,
+          shouldContinueRecording: this.data.shouldContinueRecording,
+          socketStatus: this.data.socketStatus,
+          totalRecordingTime: this.data.totalRecordingTime,
+          isSegmentTransitioning: this.data.isSegmentTransitioning
+        });
         
-        // 在分段录音模式下，如果是录音管理器状态错误，尝试重启
-        if (this.data.shouldContinueRecording && 
-            error.errMsg && 
-            error.errMsg.includes('is recording or paused')) {
-          console.log('检测到录音状态错误，尝试重启录音段...');
+        // 检查是否是可恢复的错误（在分段录音重启过程中）
+        const isRecoverableError = this.data.shouldContinueRecording && error.errMsg && (
+          error.errMsg.includes('is recording or paused') ||
+          error.errMsg.includes('recorder not start') // 新增：录音未启动也是可恢复的
+        );
+        
+        if (isRecoverableError) {
+          console.log('检测到可恢复的录音错误，尝试重启录音段...');
+          console.log('错误类型:', error.errMsg);
+          
+          // 如果是 "recorder not start" 错误且在重启过程中，这是正常的
+          if (error.errMsg.includes('recorder not start') && this.data.isSegmentTransitioning) {
+            console.log('重启过程中的正常错误，忽略处理');
+            return;
+          }
+          
+          console.log('1秒后将尝试重启录音');
           setTimeout(() => {
+            console.log('开始执行录音重启...');
             this.restartRecording();
           }, 1000);
           return;
         }
         
         // 其他错误或非分段录音模式，显示错误提示
+        console.error('录音发生不可恢复的错误，停止录音');
+        console.error('错误分类: 不可恢复错误');
         wx.showToast({
           title: '录音出错，请重试',
           icon: 'none'
         });
         this.setData({ isRecording: false });
         this.closeWebSocket();
+        console.log('=== 录音错误处理完成 ===');
       });
 
       this.recorderManager = recorderManager;
@@ -446,9 +543,14 @@ Page({
 
   // 开始录音
   async startRecording() {
+    console.log('=== startRecording 调用 ===');
+    console.log('当前录音状态:', this.data.isRecording);
+    console.log('当前WebSocket状态:', this.data.socketStatus);
+    
     // 检查登录状态
     const app = getApp();
     if (!app.globalData.isLogin) {
+      console.log('用户未登录，显示登录提示');
       wx.showModal({
         title: '提示',
         content: '录音功能需要登录后使用，是否立即登录？',
@@ -463,18 +565,28 @@ Page({
       return;
     }
     
-    if (this.data.isRecording) return;
+    if (this.data.isRecording) {
+      console.log('当前已在录音状态，跳过重复启动');
+      return;
+    }
 
     try {
+      console.log('开始初始化录音环境...');
+      
       // 确保WebSocket已连接
       if (this.data.socketStatus !== 'connected') {
+        console.log('WebSocket未连接，开始初始化WebSocket...');
         await this.initWebSocket();
+        console.log('WebSocket初始化完成，状态:', this.data.socketStatus);
       }
 
       // 初始化录音
+      console.log('开始初始化录音管理器...');
       await this.initRecorder();
+      console.log('录音管理器初始化完成');
 
       // 更新状态
+      console.log('更新录音状态...');
       this.setData({
         isRecording: true,
         transcripts: [],
@@ -484,13 +596,18 @@ Page({
       });
 
       // 开始计时
+      console.log('启动计时器...');
       this.startTimer();
 
       // 开始波形动画
+      console.log('启动波形动画...');
       this.startWaveformAnimation();
 
+      console.log('=== startRecording 完成 ===');
     } catch (error) {
-      console.error('开始录音失败:', error);
+      console.error('=== startRecording 失败 ===');
+      console.error('错误详情:', error);
+      console.error('错误堆栈:', error.stack);
       wx.showToast({
         title: '启动录音失败',
         icon: 'none'
@@ -851,43 +968,70 @@ Page({
 
   // 发送WebSocket消息
   sendWebSocketMessage(message) {
+    console.log('=== 准备发送WebSocket消息 ===');
+    console.log('WebSocket状态:', this.data.socketStatus);
+    console.log('消息类型:', message instanceof ArrayBuffer ? '音频数据' : '控制命令');
+    
     if (this.data.socketStatus !== 'connected') {
-      console.error('WebSocket未连接');
+      console.error('WebSocket未连接，无法发送消息');
+      console.error('当前状态:', this.data.socketStatus);
       return false;
     }
 
     try {
       // 如果是ArrayBuffer，直接发送二进制数据
       if (message instanceof ArrayBuffer) {
+        if (!this.audioDataLogCounter) this.audioDataLogCounter = 0;
+        this.audioDataLogCounter++;
+        
+        // 每100次音频数据发送打印一次日志
+        if (this.audioDataLogCounter % 100 === 0) {
+          console.log('=== 音频数据发送状态 ===');
+          console.log('累计发送次数:', this.audioDataLogCounter);
+          console.log('数据大小:', message.byteLength);
+          console.log('当前段索引:', this.data.segmentIndex);
+        }
+        
         wx.sendSocketMessage({
           data: message,
           success: () => {
-            console.log('音频数据发送成功，大小:', message.byteLength);
+            if (this.audioDataLogCounter % 100 === 0) {
+              console.log('音频数据发送成功，大小:', message.byteLength);
+            }
             return true;
           },
           fail: (error) => {
-            console.error('音频数据发送失败:', error);
+            console.error('=== 音频数据发送失败 ===');
+            console.error('错误详情:', error);
+            console.error('数据大小:', message.byteLength);
+            console.error('当前段索引:', this.data.segmentIndex);
             this.handleWebSocketError(error);
             return false;
           }
         });
       } else {
         // 其他消息（如控制命令）转为JSON发送
+        console.log('发送控制命令:', JSON.stringify(message));
         wx.sendSocketMessage({
           data: JSON.stringify(message),
           success: () => {
-            console.log('消息发送成功:', message);
+            console.log('控制命令发送成功:', message.command || '未知命令');
             return true;
           },
           fail: (error) => {
-            console.error('消息发送失败:', error);
+            console.error('=== 控制命令发送失败 ===');
+            console.error('错误详情:', error);
+            console.error('命令内容:', message);
             this.handleWebSocketError(error);
             return false;
           }
         });
       }
     } catch (error) {
-      console.error('发送消息时出错:', error);
+      console.error('=== 发送消息时出错 ===');
+      console.error('错误详情:', error);
+      console.error('错误堆栈:', error.stack);
+      console.error('消息内容:', message instanceof ArrayBuffer ? '音频数据' : message);
       this.handleWebSocketError(error);
       return false;
     }
@@ -940,52 +1084,93 @@ Page({
   },
 
   handleWebSocketMessage(res) {
+    console.log('=== 收到WebSocket消息 ===');
+    console.log('原始消息:', res.data);
+    console.log('消息长度:', res.data ? res.data.length : 0);
+    
     try {
       const data = JSON.parse(res.data);
+      console.log('解析后的消息:', data);
+      console.log('消息类型:', data.type);
       
       // 处理服务器返回的消息
       switch (data.type) {
         case 'START_RECORDING':
+          console.log('=== 处理 START_RECORDING 消息 ===');
+          console.log('收到录音ID:', data.recordId);
           // 服务器返回录音ID和初始化状态
           this.setData({
             recordingId: data.recordId
           });
-          console.log("handle data ====",this.data)
+          console.log("录音ID已设置，当前数据:", {
+            recordingId: this.data.recordingId,
+            segmentIndex: this.data.segmentIndex,
+            isFirstSegment: this.data.isFirstSegment
+          });
           break;
         
         case 'TRANSCRIPTION':
+          console.log('=== 处理 TRANSCRIPTION 消息 ===');
+          console.log('转录文本:', data.text);
+          console.log('时间戳:', data.timestamp);
+          console.log('说话人ID:', data.speakerId);
           // 处理转写结果
           this.handleTranscription(data);
           break;
         
         case 'error':
+          console.error('=== 处理服务器错误消息 ===');
+          console.error('错误消息:', data.message);
+          console.error('错误代码:', data.code);
+          console.error('完整错误数据:', data);
           // 处理错误
-          console.error('服务器错误:', data.message);
           wx.showToast({
             title: '服务器错误: ' + data.message,
             icon: 'none'
           });
           break;
+          
+        default:
+          console.log('=== 未知消息类型 ===');
+          console.log('消息类型:', data.type);
+          console.log('完整消息:', data);
+          break;
       }
     } catch (error) {
-      console.error('解析WebSocket消息失败:', error);
+      console.error('=== 解析WebSocket消息失败 ===');
+      console.error('错误详情:', error);
+      console.error('错误堆栈:', error.stack);
+      console.error('原始消息数据:', res.data);
+      console.error('消息数据类型:', typeof res.data);
     }
   },
 
   handleTranscription(data) {
+    console.log('=== 开始处理转录结果 ===');
+    console.log('原始转录数据:', data);
+    
     // 处理转写结果
     const { text, timestamp=Date.now(), speakerId="speaker" } = data;
+    console.log('解析后的转录信息:', {
+      text: text,
+      timestamp: timestamp,
+      speakerId: speakerId,
+      textLength: text ? text.length : 0
+    });
 
     if (!text || text.trim() === '') {
+      console.log('转录文本为空，跳过处理');
       return;
     }
     
     // 格式化时间戳
     const date = new Date(timestamp);
     const formattedTime = this.formatTime(date);
+    console.log('格式化时间:', formattedTime);
 
     // 添加到转写结果列表
     const transcripts = this.data.transcripts;
+    console.log('当前转录列表长度:', transcripts.length);
     let newItemId = null;
     
     // 检查是否已存在该时间戳的转写，如果存在则更新
@@ -993,28 +1178,37 @@ Page({
       Math.abs(new Date(item.timestamp).getTime() - timestamp) < 1000
     );
     
+    console.log('查找现有转录索引:', existingIndex);
+    
     if (existingIndex >= 0) {
+      console.log('更新现有转录项，索引:', existingIndex);
       // 更新现有的转写
       transcripts[existingIndex].text = text;
       transcripts[existingIndex].speakerId = speakerId;
       newItemId = transcripts[existingIndex].id || `transcript-${Date.now()}`;
       transcripts[existingIndex].id = newItemId;
+      console.log('转录项已更新:', transcripts[existingIndex]);
     } else {
       // 生成唯一ID
       newItemId = `transcript-${Date.now()}`;
+      console.log('创建新转录项，ID:', newItemId);
       
       // 添加新的转写
-      transcripts.push({
+      const newTranscript = {
         id: newItemId,
         text,
         timestamp,
         formattedTime,
         speakerId,
         isFinal: true
-      });
+      };
+      
+      transcripts.push(newTranscript);
+      console.log('新转录项已添加:', newTranscript);
       
       // 按时间戳排序
       transcripts.sort((a, b) => a.timestamp - b.timestamp);
+      console.log('转录列表已排序，新长度:', transcripts.length);
     }
     
     // 创建淡入动画
@@ -1024,6 +1218,7 @@ Page({
     });
     animation.opacity(1).step();
     
+    console.log('准备更新页面数据...');
     // 更新数据，先设置滚动到底部元素，然后再滚动到最新项
     this.setData({
       transcripts: transcripts,
@@ -1031,12 +1226,17 @@ Page({
       fadeIn: animation.export()
     });
     
+    console.log('页面数据已更新，转录列表长度:', this.data.transcripts.length);
+    
     // 延迟微秒后再滚动到最新项，确保滚动效果生效
     setTimeout(() => {
+      console.log('设置滚动到新项:', newItemId);
       this.setData({
         scrollToView: newItemId
       });
     }, 50);
+    
+    console.log('=== 转录结果处理完成 ===');
   },
 
   // 滚动到底部
@@ -1083,8 +1283,14 @@ Page({
       
       // 监听录音开始事件
       recorderManager.onStart(() => {
-        console.log('录音开始');
+        console.log('=== 录音管理器 onStart 事件触发 (initAndStartRecording) ===');
         const currentTime = Date.now();
+        console.log('当前时间:', currentTime);
+        console.log('是否第一段录音:', this.data.isFirstSegment);
+        console.log('当前段索引:', this.data.segmentIndex);
+        console.log('总录音时间:', this.data.totalRecordingTime);
+        console.log('WebSocket状态:', this.data.socketStatus);
+        
         this.setData({ 
           isRecording: true,
           audioBuffer: new Int16Array(),  // 重置音频缓冲区
@@ -1092,20 +1298,30 @@ Page({
           isSegmentTransitioning: false
         });
         
+        console.log('录音状态已更新:', {
+          isRecording: true,
+          segmentStartTime: currentTime,
+          isSegmentTransitioning: false
+        });
+        
         // 只在第一段录音时重置计时器，分段重启时不重置
         if (this.data.isFirstSegment) {
+          console.log('第一段录音，重置计时器');
           this.startTimer(true); // 重置时间
         } else {
+          console.log('分段录音重启，不重置计时器时间');
           // 分段重启时，重新启动计时器但不重置时间
           // 因为 recordingTime 已经在 handleSegmentEnd 中被重置为 0
           this.startTimer(false); // 不重置时间，但重新启动计时器
         }
         
+        console.log('启动录音监控...');
         this.startRecordingMonitor(); // 启动录音监控
 
         // 只在第一段录音时发送开始录音命令，避免服务器感知到分段
         if (this.data.isFirstSegment) {
-          this.sendWebSocketMessage({
+          console.log('第一段录音，发送 START_RECORDING 命令到服务器');
+          const success = this.sendWebSocketMessage({
             command: 'START_RECORDING',
             config: {
               sampleRate: AUDIO_CONFIG.sampleRate,
@@ -1113,7 +1329,12 @@ Page({
               frameSize: AUDIO_CONFIG.frameSize
             }
           });
+          console.log('START_RECORDING 命令发送结果:', success);
+        } else {
+          console.log('分段录音重启，不发送 START_RECORDING 命令（保持服务器端连续性）');
         }
+        
+        console.log('=== 录音管理器 onStart 处理完成 (initAndStartRecording) ===');
       });
 
       // 监听录音帧数据事件
@@ -1145,26 +1366,53 @@ Page({
 
       // 监听录音错误事件
       recorderManager.onError((error) => {
-        console.error('录音错误:', error);
+        console.error('=== 录音管理器 onError 事件触发 (initAndStartRecording) ===');
+        console.error('错误详情:', error);
+        console.error('错误消息:', error.errMsg);
+        console.error('错误代码:', error.errCode);
+        console.log('当前状态:', {
+          isRecording: this.data.isRecording,
+          segmentIndex: this.data.segmentIndex,
+          shouldContinueRecording: this.data.shouldContinueRecording,
+          socketStatus: this.data.socketStatus,
+          totalRecordingTime: this.data.totalRecordingTime,
+          isSegmentTransitioning: this.data.isSegmentTransitioning
+        });
         
-        // 在分段录音模式下，如果是录音管理器状态错误，尝试重启
-        if (this.data.shouldContinueRecording && 
-            error.errMsg && 
-            error.errMsg.includes('is recording or paused')) {
-          console.log('检测到录音状态错误，尝试重启录音段...');
+        // 检查是否是可恢复的错误（在分段录音重启过程中）
+        const isRecoverableError = this.data.shouldContinueRecording && error.errMsg && (
+          error.errMsg.includes('is recording or paused') ||
+          error.errMsg.includes('recorder not start') // 新增：录音未启动也是可恢复的
+        );
+        
+        if (isRecoverableError) {
+          console.log('检测到可恢复的录音错误，尝试重启录音段...');
+          console.log('错误类型:', error.errMsg);
+          
+          // 如果是 "recorder not start" 错误且在重启过程中，这是正常的
+          if (error.errMsg.includes('recorder not start') && this.data.isSegmentTransitioning) {
+            console.log('重启过程中的正常错误，忽略处理');
+            return;
+          }
+          
+          console.log('1秒后将尝试重启录音');
           setTimeout(() => {
+            console.log('开始执行录音重启...');
             this.restartRecording();
           }, 1000);
           return;
         }
         
         // 其他错误或非分段录音模式，显示错误提示
+        console.error('录音发生不可恢复的错误，停止录音');
+        console.error('错误分类: 不可恢复错误');
         wx.showToast({
           title: '录音出错，请重试',
           icon: 'none'
         });
         this.setData({ isRecording: false });
         this.closeWebSocket();
+        console.log('=== 录音错误处理完成 (initAndStartRecording) ===');
       });
 
       this.recorderManager = recorderManager;
@@ -1248,16 +1496,18 @@ Page({
     // 检查是否应该继续录音
     if (this.data.shouldContinueRecording && SEGMENT_CONFIG.autoRestart) {
       console.log('准备开始下一段录音...');
-      this.setData({ isSegmentTransitioning: true });
-      
-      // 重置计时器的 recordingTime，但保持 totalRecordingTime
-      // 这样计时器会从 0 开始，但总时间会正确累加
-      this.setData({ recordingTime: 0 });
+      console.log('设置 isSegmentTransitioning 为 true');
+      this.setData({ 
+        isSegmentTransitioning: true,
+        recordingTime: 0  // 重置计时器的 recordingTime，但保持 totalRecordingTime
+      });
       
       console.log(`重置 recordingTime 为 0，保持 totalRecordingTime: ${totalTime}ms`);
       
       // 延迟重启录音，确保无缝连接
+      console.log(`将在 ${SEGMENT_CONFIG.overlapTime}ms 后重启录音...`);
       setTimeout(() => {
+        console.log('开始执行延迟重启录音...');
         this.restartRecording();
       }, SEGMENT_CONFIG.overlapTime);
     } else {
@@ -1269,13 +1519,23 @@ Page({
 
   // 重启录音段
   async restartRecording() {
-    console.log(`=== 重启录音段 ===`);
+    console.log(`=== 开始重启录音段 ===`);
+    console.log(`重启时间: ${Date.now()}`);
     console.log(`shouldContinueRecording: ${this.data.shouldContinueRecording}`);
     console.log(`segmentIndex: ${this.data.segmentIndex}`);
-    console.log(`recorderManager:`, this.recorderManager);
+    console.log(`totalRecordingTime: ${this.data.totalRecordingTime}ms`);
+    console.log(`recordingTime: ${this.data.recordingTime}s`);
+    console.log(`WebSocket状态: ${this.data.socketStatus}`);
+    console.log(`recordingId: ${this.data.recordingId}`);
+    console.log(`recorderManager存在:`, !!this.recorderManager);
     
     if (!this.data.shouldContinueRecording) {
-      console.log('shouldContinueRecording为false，不重启录音');
+      console.log('shouldContinueRecording为false，停止重启录音');
+      return;
+    }
+    
+    if (!this.recorderManager) {
+      console.error('录音管理器不存在，无法重启');
       return;
     }
     
@@ -1284,33 +1544,87 @@ Page({
     
     const attemptRestart = async () => {
       try {
+        console.log(`=== 第${retryCount + 1}次尝试重启 ===`);
         console.log(`开始第 ${this.data.segmentIndex} 段录音`);
+        console.log(`尝试时间: ${Date.now()}`);
+        console.log(`当前录音状态: ${this.data.isRecording}`);
         
         // 确保录音管理器处于正确状态
         if (this.recorderManager) {
-          // 先停止当前录音，确保状态正确
-          try {
-            this.recorderManager.stop();
-            console.log('停止当前录音，准备重启');
-            // 等待一小段时间确保状态更新
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (e) {
-            console.log('停止录音时出现异常（可能是正常状态）:', e);
+          console.log('检查录音管理器状态...');
+          console.log('当前录音状态:', this.data.isRecording);
+          
+          // 只有在录音状态为true时才尝试停止，避免对已停止的录音管理器调用stop()
+          if (this.data.isRecording) {
+            console.log('录音状态为true，准备停止当前录音...');
+            try {
+              this.recorderManager.stop();
+              console.log('已调用stop()，等待状态更新...');
+              // 等待一小段时间确保状态更新
+              await new Promise(resolve => setTimeout(resolve, 500));
+              console.log('状态更新等待完成');
+            } catch (e) {
+              console.log('停止录音时出现异常:', e);
+              console.log('异常详情:', e.errMsg);
+              // 如果是 "recorder not start" 错误，这是可以接受的
+              if (e.errMsg && e.errMsg.includes('recorder not start')) {
+                console.log('录音管理器已停止，这是正常状态');
+              }
+            }
+          } else {
+            console.log('录音状态为false，跳过stop()调用，录音管理器可能已自动停止');
+            // 仍然等待一小段时间，确保状态稳定
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
         }
         
         // 设置当前段的开始时间
         const currentTime = Date.now();
+        console.log(`设置第 ${this.data.segmentIndex} 段开始时间: ${currentTime}`);
+        
         this.setData({
           segmentStartTime: currentTime,
           audioBuffer: new Int16Array(),
           isSegmentTransitioning: false
         });
         
-        console.log(`第 ${this.data.segmentIndex} 段开始时间: ${currentTime}`);
+        console.log('状态已更新:', {
+          segmentStartTime: currentTime,
+          audioBufferLength: 0,
+          isSegmentTransitioning: false
+        });
+        
+        // 检查WebSocket状态，如果断开则尝试重连
+        if (this.data.socketStatus !== 'connected') {
+          console.error('WebSocket未连接，尝试重新连接...');
+          console.error('当前WebSocket状态:', this.data.socketStatus);
+          
+          try {
+            console.log('开始重新初始化WebSocket连接...');
+            await this.initWebSocket();
+            console.log('WebSocket重连成功，状态:', this.data.socketStatus);
+            
+            if (this.data.socketStatus !== 'connected') {
+              throw new Error('WebSocket重连失败');
+            }
+          } catch (wsError) {
+            console.error('WebSocket重连失败:', wsError);
+            throw new Error('WebSocket连接无法恢复');
+          }
+        }
         
         // 重新开始录音
-        console.log('调用recorderManager.start...');
+        console.log('准备调用recorderManager.start...');
+        console.log('录音参数:', {
+          duration: SEGMENT_CONFIG.segmentDuration,
+          sampleRate: AUDIO_CONFIG.sampleRate,
+          numberOfChannels: AUDIO_CONFIG.numberOfChannels,
+          encodeBitRate: AUDIO_CONFIG.encodeBitRate,
+          format: AUDIO_CONFIG.format,
+          frameSize: AUDIO_CONFIG.frameSize,
+          needFrame: AUDIO_CONFIG.needFrame
+        });
+        
         this.recorderManager.start({
           duration: SEGMENT_CONFIG.segmentDuration,
           sampleRate: AUDIO_CONFIG.sampleRate,
@@ -1321,30 +1635,51 @@ Page({
           needFrame: AUDIO_CONFIG.needFrame
         });
         
-        console.log('录音重启成功');
+        console.log('recorderManager.start() 调用完成');
+        console.log('录音重启成功，等待onStart事件...');
         
         // 不发送任何命令到服务器，保持音频流的连续性
         // 服务器端会认为这是一个连续的录音会话
+        console.log('不发送START_RECORDING命令，保持服务器端连续性');
         
       } catch (error) {
-        console.error('重启录音失败:', error);
+        console.error(`=== 第${retryCount + 1}次重启录音失败 ===`);
+        console.error('错误详情:', error);
+        console.error('错误消息:', error.errMsg);
+        console.error('错误代码:', error.errCode);
+        console.error('错误堆栈:', error.stack);
+        
         retryCount++;
         
         if (retryCount < maxRetries) {
-          console.log(`重启录音失败，第${retryCount}次重试...`);
-          setTimeout(attemptRestart, 1000);
+          console.log(`准备进行第${retryCount + 1}次重试，${2000}ms后执行...`);
+          setTimeout(() => {
+            console.log(`开始第${retryCount + 1}次重试`);
+            attemptRestart();
+          }, 2000); // 增加重试间隔
         } else {
-          console.log('重试次数已达上限，停止录音');
+          console.error('=== 重试次数已达上限，停止录音 ===');
+          console.error(`总共尝试了${maxRetries}次重启，均失败`);
+          
           wx.showToast({
             title: '录音重启失败，请手动重试',
             icon: 'none'
           });
-          this.setData({ shouldContinueRecording: false });
+          
+          this.setData({ 
+            shouldContinueRecording: false,
+            isRecording: false
+          });
+          
+          // 关闭WebSocket连接
+          this.closeWebSocket();
         }
       }
     };
     
+    console.log('开始执行重启尝试...');
     await attemptRestart();
+    console.log('=== 重启录音段函数执行完成 ===');
   },
 
   // 监控录音状态
@@ -1368,6 +1703,12 @@ Page({
           !this.data.isSegmentTransitioning &&
           this.data.socketStatus === 'connected') {
         console.warn('检测到录音意外停止，尝试重启...');
+        console.warn('触发意外停止重启，当前状态:', {
+          shouldContinueRecording: this.data.shouldContinueRecording,
+          isRecording: this.data.isRecording,
+          isSegmentTransitioning: this.data.isSegmentTransitioning,
+          socketStatus: this.data.socketStatus
+        });
         this.restartRecording();
       }
     }, 5000); // 每5秒检查一次

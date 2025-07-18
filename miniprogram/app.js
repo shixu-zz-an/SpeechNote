@@ -3,8 +3,10 @@ App({
     userInfo: null,
     // baseUrl: 'https://asr.aipromaker.cn', // 修改为实际的API地址
     // wsUrl:'wss://asr.aipromaker.cn',
-    baseUrl: 'https://www.speevolt.cn', // 修改为实际的API地址
-    wsUrl:'wss://www.speevolt.cn',
+    // baseUrl: 'https://www.speevolt.cn', // 修改为实际的API地址
+    // wsUrl:'wss://www.speevolt.cn',
+    baseUrl: 'http://192.168.0.101:9001', // 修改为实际的API地址
+    wsUrl:'ws://192.168.0.101:9001',
     token: '',
     isLogin: false,
     needRefreshMeetings: false,
